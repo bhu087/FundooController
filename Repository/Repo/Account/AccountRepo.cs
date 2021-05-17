@@ -3,6 +3,8 @@ using Repository.DbContexts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -59,6 +61,37 @@ namespace Repository.Repo.Account
                 return null;
             }
             catch
+            {
+                throw new Exception();
+            }
+        }
+
+        public async Task<string> ForgetPassword(string email)
+        {
+            try
+            {
+                var user = await Task.Run(() => this.GetAccountByEmail(email));
+                if (user != null)
+                {
+                    MailMessage mail = new MailMessage();
+                    mail.To.Add("bhu087@gmail.com");
+                    mail.From = new MailAddress("bhush097@gmail.com");
+                    mail.Subject = "Password from Fundoo";
+                    mail.Body = "Email : " + user.Email + "\nPassword : " + user.Password;
+                    mail.IsBodyHtml = false;
+                    SmtpClient smtp = new SmtpClient
+                    {
+                        Host = "smtp.gmail.com",
+                        Port = 587,
+                        EnableSsl = true,
+                        Credentials = new NetworkCredential("bhush097@gmail.com", "ABC097***")
+                    };
+                    smtp.Send(mail);
+                    return await Task.Run(() => "Success");
+                }
+                return null;
+            }
+            catch(Exception e)
             {
                 throw new Exception();
             }

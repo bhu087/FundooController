@@ -39,5 +39,16 @@ namespace Manager.Account
             }
         }
 
+        public Task<string> ForgetPassword(string email)
+        {
+            try
+            {
+                return repo.ForgetPassword(email);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
     }
 }
