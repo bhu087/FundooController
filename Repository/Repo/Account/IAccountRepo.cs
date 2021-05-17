@@ -2,11 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Repository.Repo.Account
 {
     public interface IAccountRepo
     {
-        Register RegisterUser();
+        Task<Register> RegisterUser(Register register);
+        Task<Login> LoginUser(Login login);
     }
 }

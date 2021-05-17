@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Repository.DbContexts;
 using Repository.Repo.Account;
 using System;
 using System.Collections.Generic;
@@ -28,7 +30,9 @@ namespace FundooController
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTransient<IAccountManager, AccountManager>();
-            services.AddTransient<IAccountRepo, IAccountRepo>();
+            services.AddTransient<IAccountRepo, AccountRepo>();
+            services.AddDbContextPool<UserDbContext>(
+               options => options.UseSqlServer(Configuration.GetConnectionString("UserDbConnection")));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddSwaggerGen();
         }

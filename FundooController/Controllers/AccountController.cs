@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Manager.Account;
+using Microsoft.AspNetCore.Mvc;
+using ModelClass.Account;
+using Repository.Repo.Account;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +11,51 @@ namespace FundooController.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class AccountController : ControllerBase
     {
+        private IAccountManager manager;
+        public AccountController(IAccountManager accountManager)
+        {
+            manager = accountManager;
+        }
+        // POST api/values
+        [HttpPost]
+        public ActionResult RegisterUser(Register register)
+        {
+            try
+            {
+                Task<Register> response = manager.RegisterUser(register);
+                if (response.Result != null)
+                {
+                    return this.Ok(new { Status = true, Message = "Registered Successfully", Data = response.Result });
+                }
+                return this.BadRequest(new { Status = false, Message = "Not Registered", Data = response.Result});
+            }
+            catch(Exception e)
+            {
+                return this.BadRequest(new { Status = false, Message = "Exception", Data = e });
+            }
+        }
+
+        [HttpPost]
+        [Route("Login")]
+        public ActionResult LoginUser(Login login)
+        {
+            Task<Login> response = manager.LoginUser(login);
+            try
+            {
+                if (response.Result != null)
+                {
+                    return this.Ok(new { Status = true, Message = "Logged in successfully", Data = response.Result });
+                }
+                return this.BadRequest(new { Status = false, Message = "Not Logged in", Data = response.Result });
+            }
+            catch(Exception e)
+            {
+                return this.BadRequest(new { Status = false, Message = "Exception", Data = e });
+            }
+        }
+
         // GET api/values
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
@@ -22,12 +68,6 @@ namespace FundooController.Controllers
         public ActionResult<string> Get(int id)
         {
             return "value";
-        }
-
-        // POST api/values
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
         }
 
         // PUT api/values/5
