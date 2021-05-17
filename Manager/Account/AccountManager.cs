@@ -50,5 +50,17 @@ namespace Manager.Account
                 throw new Exception();
             }
         }
+
+        public Task<string> ResetPassword(string email)
+        {
+            try
+            {
+                return repo.ResetPassword(email);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
     }
 }

@@ -57,7 +57,7 @@ namespace FundooController.Controllers
         }
 
         [HttpPost]
-        [Route("{email}")]
+        [Route("Forget/{email}")]
         public ActionResult ForgetPassword(string email)
         {
             Task<string> response = manager.ForgetPassword(email);
@@ -66,6 +66,25 @@ namespace FundooController.Controllers
                 if (response.Result != null)
                 {
                     return this.Ok(new { Status = true, Message = "Password send to your Email successfully", Data = response.Result });
+                }
+                return this.BadRequest(new { Status = false, Message = "Account not exist", Data = response.Result });
+            }
+            catch (Exception e)
+            {
+                return this.BadRequest(new { Status = false, Message = "Exception", Data = e });
+            }
+        }
+
+        [HttpPost]
+        [Route("Reset/{email}")]
+        public ActionResult ResetPassword(string email)
+        {
+            Task<string> response = manager.ResetPassword(email);
+            try
+            {
+                if (response.Result != null)
+                {
+                    return this.Ok(new { Status = true, Message = "Reset Link sent to your Email successfully", Data = response.Result });
                 }
                 return this.BadRequest(new { Status = false, Message = "Account not exist", Data = response.Result });
             }

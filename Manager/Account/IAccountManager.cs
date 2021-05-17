@@ -12,5 +12,6 @@ namespace Manager.Account
         Task<Register> RegisterUser(Register register);
         Task<Login> LoginUser(Login login);
         Task<string> ForgetPassword(string email);
+        Task<string> ResetPassword(string email);
     }
 }

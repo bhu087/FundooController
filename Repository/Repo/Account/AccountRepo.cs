@@ -84,7 +84,7 @@ namespace Repository.Repo.Account
                         Host = "smtp.gmail.com",
                         Port = 587,
                         EnableSsl = true,
-                        Credentials = new NetworkCredential("bhush097@gmail.com", "ABC097***")
+                        Credentials = new NetworkCredential("bhush097@gmail.com", "ABCD12345")
                     };
                     smtp.Send(mail);
                     return await Task.Run(() => "Success");
@@ -92,6 +92,37 @@ namespace Repository.Repo.Account
                 return null;
             }
             catch(Exception e)
+            {
+                throw new Exception();
+            }
+        }
+
+        public async Task<string> ResetPassword(string email)
+        {
+            try
+            {
+                var user = await Task.Run(() => this.GetAccountByEmail(email));
+                if (user != null)
+                {
+                    MailMessage mail = new MailMessage();
+                    mail.To.Add("bhu087@gmail.com");
+                    mail.From = new MailAddress("bhush097@gmail.com");
+                    mail.Subject = "Reset Link for Fundoo";
+                    mail.Body = "https://localhost:44337/swagger/index.html";
+                    mail.IsBodyHtml = false;
+                    SmtpClient smtp = new SmtpClient
+                    {
+                        Host = "smtp.gmail.com",
+                        Port = 587,
+                        EnableSsl = true,
+                        Credentials = new NetworkCredential("bhush097@gmail.com", "ABCD12345")
+                    };
+                    smtp.Send(mail);
+                    return await Task.Run(() => "Success");
+                }
+                return null;
+            }
+            catch
             {
                 throw new Exception();
             }
