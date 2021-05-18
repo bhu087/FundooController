@@ -1,11 +1,11 @@
-﻿using ModelClass;
-using ModelClass.Account;
+﻿
+using FundooModel.Account;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Manager.Account
+namespace FundooManager.Account
 {
     public interface IAccountManager
     {

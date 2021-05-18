@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Manager\Manager.csproj" />
-    <ProjectReference Include="..\Repository\Repository.csproj" />
+    <ProjectReference Include="..\Manager\FundooManager.csproj" />
+    <ProjectReference Include="..\Repository\FundooRepository.csproj" />
   </ItemGroup>
 
 </Project>

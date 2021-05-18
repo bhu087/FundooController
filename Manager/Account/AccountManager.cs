@@ -1,10 +1,10 @@
-﻿using Manager.Account;
-using ModelClass.Account;
-using Repository.Repo.Account;
+﻿
+using FundooModel.Account;
+using FundooRepository.Repo.Account;
 using System;
 using System.Threading.Tasks;
 
-namespace Manager.Account
+namespace FundooManager.Account
 {
     public class AccountManager : IAccountManager
     {

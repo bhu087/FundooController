@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ModelClass.Account;
+using FundooModel.Account;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Repository.DbContexts
+namespace FundooRepository.DbContexts
 {
     public class UserDbContext : DbContext
     {

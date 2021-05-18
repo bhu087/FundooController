@@ -1,10 +1,10 @@
-﻿using ModelClass.Account;
+﻿using FundooModel.Account;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Repository.Repo.Account
+namespace FundooRepository.Repo.Account
 {
     public interface IAccountRepo
     {

@@ -1,4 +1,7 @@
-﻿using Manager.Account;
+﻿
+using FundooManager.Account;
+using FundooRepository.DbContexts;
+using FundooRepository.Repo.Account;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -8,8 +11,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Repository.DbContexts;
-using Repository.Repo.Account;
 using System;
 using System.Collections.Generic;
 using System.Linq;

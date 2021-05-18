@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace ModelClass.Account
+namespace FundooModel.Account
 {
     public class Login
     {
