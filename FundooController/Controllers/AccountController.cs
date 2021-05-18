@@ -41,7 +41,7 @@ namespace FundooController.Controllers
         [Route("Login")]
         public ActionResult LoginUser(Login login)
         {
-            Task<Login> response = manager.LoginUser(login);
+            Task<string> response = manager.LoginUser(login);
             try
             {
                 if (response.Result != null)

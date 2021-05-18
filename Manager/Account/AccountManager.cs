@@ -26,7 +26,7 @@ namespace FundooManager.Account
             }
         }
 
-        public Task<Login> LoginUser(Login login)
+        public Task<string> LoginUser(Login login)
         {
             try
             {

@@ -2,12 +2,15 @@
 using FundooModel.Account;
 using FundooRepository.DbContexts;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -57,7 +60,7 @@ namespace FundooRepository.Repo.Account
             }
         }
 
-        public async Task<Login> LoginUser(Login login)
+        public async Task<string> LoginUser(Login login)
         {
             try
             {
@@ -66,7 +69,8 @@ namespace FundooRepository.Repo.Account
                 {
                     if (login.Password.Equals(this.PasswordDecryption(register.Password)))
                     {
-                        return login;
+                        string jwtToken = this.GenerateJWTtokens(register.ID, register.Name);
+                        return jwtToken;
                     }
                 }
                 return null;
@@ -180,6 +184,31 @@ namespace FundooRepository.Repo.Account
             Decode.GetChars(todecode_byte, 0, todecode_byte.Length, decoded_char, 0);
             string decryptePassword = new String(decoded_char);
             return decryptePassword;
+        }
+        public string GenerateJWTtokens(int id, string name)
+        {
+            string key = config["JwtDetails:JwtKey"];
+            try
+            {
+                var tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(new Claim[]
+                        {
+                            new Claim("Id", id.ToString()),
+                            new Claim("Name", name)
+                        }),
+                    Expires = DateTime.UtcNow.AddDays(1),
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256Signature)
+                };
+                var securityTokenHandler = new JwtSecurityTokenHandler();
+                var securityToken = securityTokenHandler.CreateToken(tokenDescriptor);
+                var token = securityTokenHandler.WriteToken(securityToken);
+                return token;
+            }
+            catch
+            {
+                throw new Exception();
+            }
         }
     }
 }
