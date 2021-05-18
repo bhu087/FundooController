@@ -35,7 +35,7 @@ namespace FundooRepository.Repo.Account
                     {
                         Name = register.Name,
                         Email = register.Email,
-                        Password = register.Password
+                        Password = this.PasswordEncryption(register.Password)
                     };
                     this.context.AccountRegisters.Add(save);
                     var result = await Task.Run(() => this.context.SaveChangesAsync());
@@ -64,7 +64,7 @@ namespace FundooRepository.Repo.Account
                 Register register = await Task.Run(() => GetAccountByEmail(login.Email));
                 if (register != null)
                 {
-                    if (login.Password.Equals(register.Password))
+                    if (login.Password.Equals(this.PasswordDecryption(register.Password)))
                     {
                         return login;
                     }
@@ -84,7 +84,7 @@ namespace FundooRepository.Repo.Account
                 var user = await Task.Run(() => this.GetAccountByEmail(email));
                 if (user != null)
                 {
-                    string subject = "Password from Fundoo", body = "Email: " + user.Email + "\nPassword: " + user.Password;
+                    string subject = "Password from Fundoo", body = "Email: " + user.Email + "\nPassword: " + this.PasswordDecryption(user.Password);
                     this.SendMail(subject, body);
                     return await Task.Run(() => "Success");
                 }
@@ -165,23 +165,21 @@ namespace FundooRepository.Repo.Account
 
         public string PasswordEncryption(string password)
         {
-            string strmsg = string.Empty;
             byte[] encode = new byte[password.Length];
             encode = Encoding.UTF8.GetBytes(password);
-            strmsg = Convert.ToBase64String(encode);
-            return strmsg;
+            string encryptedPassword = Convert.ToBase64String(encode);
+            return encryptedPassword;
         }
-        public static string PasswordDecryption(string encryptPassword)
+        public string PasswordDecryption(string encryptPassword)
         {
-            string decryptpwd = string.Empty;
             UTF8Encoding encodepwd = new UTF8Encoding();
             Decoder Decode = encodepwd.GetDecoder();
             byte[] todecode_byte = Convert.FromBase64String(encryptPassword);
             int charCount = Decode.GetCharCount(todecode_byte, 0, todecode_byte.Length);
             char[] decoded_char = new char[charCount];
             Decode.GetChars(todecode_byte, 0, todecode_byte.Length, decoded_char, 0);
-            decryptpwd = new String(decoded_char);
-            return decryptpwd;
+            string decryptePassword = new String(decoded_char);
+            return decryptePassword;
         }
     }
 }
