@@ -1,7 +1,9 @@
 ﻿
 using FundooManager.Account;
+using FundooManager.Notes;
 using FundooRepository.DbContexts;
 using FundooRepository.Repo.Account;
+using FundooRepository.Repo.Notes;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -30,6 +32,9 @@ namespace FundooController
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            services.AddTransient<INotesManager, NotesManager>();
+            services.AddTransient<INotesRepo, NotesRepo>();
             services.AddTransient<IAccountManager, AccountManager>();
             services.AddTransient<IAccountRepo, AccountRepo>();
             services.AddDbContextPool<UserDbContext>(
