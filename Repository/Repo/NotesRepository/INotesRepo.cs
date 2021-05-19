@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using FundooModel.Notes;
 using System.Threading.Tasks;
+using CloudinaryDotNet.Actions;
 
 namespace FundooRepository.Repo.NotesRepository
 {
@@ -16,5 +17,6 @@ namespace FundooRepository.Repo.NotesRepository
         Task<Notes> DeleteFromTrash(int id);
         Task<Collaborater> AddCollaborater(Collaborater collaborater);
         Task<Collaborater> DeleteCollaborater(Collaborater collaborater);
+        Task<ImageUploadResult> UploadImage(int noteId, string imagePath);
     }
 }

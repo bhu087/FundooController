@@ -1,4 +1,5 @@
 ﻿
+using CloudinaryDotNet.Actions;
 using FundooManager.NotesManager;
 using FundooModel.Notes;
 using Microsoft.AspNetCore.Mvc;
@@ -154,6 +155,24 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Collaborater not available", Response = result.Result });
             }
             catch (Exception e)
+            {
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+        [HttpPost]
+        [Route("uploadImage")]
+        public ActionResult UploadImage(int noteId, string imagePath)
+        {
+            try
+            {
+                Task<ImageUploadResult> result = this.manager.UploadImage(noteId, imagePath);
+                if (result.Result != null)
+                {
+                    return this.Ok(new { Status = true, Message = "Image Uploaded Successfully", Response = result.Result });
+                }
+                return this.BadRequest(new { Status = false, Message = "image not uploaded", Response = result.Result });
+            }
+            catch(Exception e)
             {
                 return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
             }

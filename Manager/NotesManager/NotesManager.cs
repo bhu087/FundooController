@@ -1,4 +1,5 @@
 ﻿
+using CloudinaryDotNet.Actions;
 using FundooModel.Notes;
 using FundooRepository.Repo.NotesRepository;
 using System;
@@ -105,6 +106,18 @@ namespace FundooManager.NotesManager
             try
             {
                 return this.repository.DeleteCollaborater(collaborater);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+
+        public Task<ImageUploadResult> UploadImage(int noteId, string imagePath)
+        {
+            try
+            {
+                return this.repository.UploadImage(noteId, imagePath);
             }
             catch
             {

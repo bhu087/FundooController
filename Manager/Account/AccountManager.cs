@@ -1,6 +1,6 @@
 ﻿
 using FundooModel.Account;
-using FundooRepository.Repo.Account;
+using FundooRepository.Repo.AccountRepository;
 using System;
 using System.Threading.Tasks;
 

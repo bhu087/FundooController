@@ -1,4 +1,5 @@
-﻿using FundooModel.Notes;
+﻿using CloudinaryDotNet.Actions;
+using FundooModel.Notes;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,5 +17,6 @@ namespace FundooManager.NotesManager
         Task<Notes> DeleteFromTrash(int id);
         Task<Collaborater> AddCollaborater(Collaborater collaborater);
         Task<Collaborater> DeleteCollaborater(Collaborater collaborater);
+        Task<ImageUploadResult> UploadImage(int noteId, string imagePath);
     }
 }

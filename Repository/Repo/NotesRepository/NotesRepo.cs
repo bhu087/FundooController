@@ -1,4 +1,6 @@
-﻿using FundooModel.Notes;
+﻿using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using FundooModel.Notes;
 using FundooRepository.DbContexts;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -335,7 +337,36 @@ namespace FundooRepository.Repo.NotesRepository
             {
                 throw new Exception();
             }
-
+        }
+        public async Task<ImageUploadResult> UploadImage(int noteId, string imagePath)
+        {
+            try
+            {
+                string cloudName = this.config["Cloudinary:CloudName"];
+                string APIKey = this.config["Cloudinary:APIKey"];
+                string APISecret = this.config["Cloudinary:APISecret"];
+                var note = this.context.Notes.Where(noteAtId => noteAtId.NotesId == noteId).SingleOrDefault();
+                if (note != null)
+                {
+                    Account account = new Account(cloudName, APIKey, APISecret);
+                    Cloudinary cloudinary = new Cloudinary(account);
+                    var uploadFile = new ImageUploadParams
+                    {
+                        File = new FileDescription(imagePath)
+                    };
+                    var uploadResult = cloudinary.Upload(uploadFile);
+                    string imageString = uploadResult.Url.ToString();
+                    note.Image = imageString;
+                    note.ModifiedTime = DateTime.Now;
+                    var result = this.context.SaveChangesAsync();
+                    return await Task.Run(() => uploadResult);
+                }
+                return null;
+            }
+            catch
+            {
+                throw new Exception();
+            }
         }
     }
 }
