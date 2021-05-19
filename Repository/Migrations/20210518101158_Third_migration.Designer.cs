@@ -4,14 +4,16 @@ using FundooRepository.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Repository.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    partial class UserDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210518101158_Third_migration")]
+    partial class Third_migration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,7 +40,7 @@ namespace Repository.Migrations
 
             modelBuilder.Entity("FundooModel.Notes.Notes", b =>
                 {
-                    b.Property<int>("NotesId")
+                    b.Property<int>("NotesId1")
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -64,7 +66,7 @@ namespace Repository.Migrations
 
                     b.Property<string>("Title");
 
-                    b.HasKey("NotesId");
+                    b.HasKey("NotesId1");
 
                     b.ToTable("Notes");
                 });

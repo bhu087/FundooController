@@ -3,6 +3,7 @@ using FundooModel.Account;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using FundooModel.Notes;
 
 namespace FundooRepository.DbContexts
 {
@@ -13,5 +14,6 @@ namespace FundooRepository.DbContexts
 
         }
         public DbSet<Register> AccountRegisters { get; set; }
+        public DbSet<Notes> Notes { get; set; }
     }
 }

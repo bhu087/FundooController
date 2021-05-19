@@ -1,4 +1,6 @@
-﻿using FundooManager.Notes;
+﻿
+using FundooManager.NotesManager;
+using FundooModel.Notes;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -16,9 +18,109 @@ namespace FundooController.Controllers
         {
             manager = notesManager;
         }
-        public IActionResult Index()
+        [HttpPost]
+        public ActionResult AddNotes(Notes notes)
         {
-            return View();
+            try
+            {
+                Task<Notes> result = this.manager.AddNotes(notes);
+                if (result.Result != null)
+                {
+                    return this.Ok(new { Status = true, Message = "Added Successfully", Response = result.Result});
+                }
+                return this.BadRequest(new { Status = false, Message = "Not added", Response = result.Result });
+            }
+            catch(Exception e)
+            {
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+        [HttpDelete]
+        public ActionResult DeleteNotes(int id)
+        {
+            try
+            {
+                Task<Notes> result = this.manager.DeleteNotes(id);
+                if (result.Result != null)
+                {
+                    return this.Ok(new { Status = true, Message = "Moved to trash Successfully", Response = result.Result });
+                }
+                return this.BadRequest(new { Status = false, Message = "Not Deleted", Response = result.Result });
+            }
+            catch (Exception e)
+            {
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+        [HttpPut]
+        public ActionResult UpdateNotes(Notes notes)
+        {
+            try
+            {
+                Task<Notes> result = this.manager.UpdateNotes(notes);
+                if (result.Result != null)
+                {
+                    return this.Ok(new { Status = true, Message = "Updated Successfully", Response = result.Result });
+                }
+                return this.BadRequest(new { Status = false, Message = "Not Updated", Response = result.Result });
+            }
+            catch (Exception e)
+            {
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+        [HttpGet]
+        public ActionResult GetAllNotes()
+        {
+            try
+            {
+                var result = this.manager.GetAllNotes();
+                if (result.Result != null)
+                {
+                    return this.Ok(new { Status = true, Message = "Lists", Response = result.Result });
+                }
+                return this.BadRequest(new { Status = false, Message = "No list available", Response = result.Result });
+            }
+            catch(Exception e)
+            {
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+        [HttpGet]
+        [Route("{email}")]
+        public ActionResult GetAllNotesByEmail(string email)
+        {
+            try
+            {
+                var result = this.manager.GetAllNotesByEmail(email);
+                if (result.Result != null)
+                {
+                    return this.Ok(new { Status = true, Message = "Lists", Response = result.Result });
+                }
+                return this.BadRequest(new { Status = false, Message = "No list available", Response = result.Result });
+            }
+            catch (Exception e)
+            {
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+        [HttpDelete]
+        [Route("deleteTrash/{id}")]
+        public ActionResult DeleteFromTrash(int id)
+        {
+            try
+            {
+                Task<Notes> result = this.manager.DeleteFromTrash(id);
+                if (result.Result != null)
+                {
+                    return this.Ok(new { Status = true, Message = "Deleted from Trash Successfully", Response = result.Result });
+                }
+                return this.BadRequest(new { Status = false, Message = "Not Deleted", Response = result.Result });
+            }
+            catch (Exception e)
+            {
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
         }
     }
 }

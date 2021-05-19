@@ -1,9 +1,9 @@
 ﻿
 using FundooManager.Account;
-using FundooManager.Notes;
+using FundooManager.NotesManager;
 using FundooRepository.DbContexts;
 using FundooRepository.Repo.Account;
-using FundooRepository.Repo.Notes;
+using FundooRepository.Repo.NotesRepository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
