@@ -122,5 +122,41 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
             }
         }
+        [HttpPost]
+        [Route("addCollaborater")]
+        public ActionResult AddCollaborater(Collaborater collaborater)
+        {
+            try
+            {
+                Task<Collaborater> result = this.manager.AddCollaborater(collaborater);
+                if (result.Result != null)
+                {
+                    return this.Ok(new { Status = true, Message = "Collaborater added Successfully", Response = result.Result });
+                }
+                return this.BadRequest(new { Status = false, Message = "Collaborater not added", Response = result.Result });
+            }
+            catch(Exception e)
+            {
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+        [HttpDelete]
+        [Route("addCollaborater")]
+        public ActionResult DeleteCollaborater(Collaborater collaborater)
+        {
+            try
+            {
+                Task<Collaborater> result = this.manager.DeleteCollaborater(collaborater);
+                if (result.Result != null)
+                {
+                    return this.Ok(new { Status = true, Message = "Collaborater Deleted Successfully", Response = result.Result });
+                }
+                return this.BadRequest(new { Status = false, Message = "Collaborater not available", Response = result.Result });
+            }
+            catch (Exception e)
+            {
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
     }
 }

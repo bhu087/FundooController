@@ -14,5 +14,7 @@ namespace FundooManager.NotesManager
         Task<IEnumerable<Notes>> GetAllNotes();
         Task<IEnumerable<Notes>> GetAllNotesByEmail(string email);
         Task<Notes> DeleteFromTrash(int id);
+        Task<Collaborater> AddCollaborater(Collaborater collaborater);
+        Task<Collaborater> DeleteCollaborater(Collaborater collaborater);
     }
 }

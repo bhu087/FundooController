@@ -87,5 +87,29 @@ namespace FundooManager.NotesManager
                 throw new Exception();
             }
         }
+
+        public Task<Collaborater> AddCollaborater(Collaborater collaborater)
+        {
+            try
+            {
+                return this.repository.AddCollaborater(collaborater);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+
+        public Task<Collaborater> DeleteCollaborater(Collaborater collaborater)
+        {
+            try
+            {
+                return this.repository.DeleteCollaborater(collaborater);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
     }
 }

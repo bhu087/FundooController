@@ -284,5 +284,58 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
+        public async Task<Collaborater> AddCollaborater(Collaborater collaborater)
+        {
+            try
+            {
+                var note = this.context.Notes.Where(noteId => noteId.NotesId == collaborater.NotesId).SingleOrDefault();
+                if (note != null)
+                {
+                    Collaborater newCollaborater = new Collaborater
+                    {
+                        NotesId = collaborater.NotesId,
+                        SenderEmail = collaborater.SenderEmail,
+                        ReceiverEmail = collaborater.ReceiverEmail
+                    };
+                    this.context.Collaboraters.Add(newCollaborater);
+                    var result = this.context.SaveChangesAsync();
+                    if (result != null)
+                    {
+                        return await Task.Run(() => collaborater);
+                    }
+                }
+                return null;
+            }
+            catch
+            {
+                throw new Exception();
+            }
+
+        }
+        public async Task<Collaborater> DeleteCollaborater(Collaborater collaborater)
+        {
+            try
+            {
+                var collabrate = this.context.Collaboraters.Where(notes => notes.NotesId == collaborater.NotesId).ToList();
+                if (collabrate != null)
+                {
+                    foreach (Collaborater list in collabrate)
+                    {
+                        if ( list.ReceiverEmail == collaborater.ReceiverEmail)
+                        {
+                            this.context.Collaboraters.Remove(list);
+                            await Task.Run(() => this.context.SaveChangesAsync());
+                            return collaborater;
+                        }
+                    }
+                }
+                return null;
+            }
+            catch
+            {
+                throw new Exception();
+            }
+
+        }
     }
 }
