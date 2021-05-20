@@ -1,41 +1,60 @@
-﻿
-using FundooManager.Account;
-using FundooManager.NotesManager;
-using FundooRepository.DbContexts;
-using FundooRepository.Repo.AccountRepository;
-using FundooRepository.Repo.NotesRepository;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿/////------------------------------------------------------------------------
+////<copyright file="Startup.cs" company="BridgeLabz">
+////author="Bhushan"
+////</copyright>
+////-------------------------------------------------------------------------
 
 namespace FundooController
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using FundooManager.Account;
+    using FundooManager.NotesManager;
+    using FundooRepository.DbContexts;
+    using FundooRepository.Repo.AccountRepository;
+    using FundooRepository.Repo.NotesRepository;
+    using LoggerService;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.HttpsPolicy;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+
+    /// <summary>
+    /// Startup program
+    /// </summary>
     public class Startup
     {
+        /// <summary>
+        /// Configuration startup constructor
+        /// </summary>
+        /// <param name="configuration">cConfiguration parameter</param>
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            this.Configuration = configuration;
         }
 
+        /// <summary>
+        /// Gets Configuration property
+        /// </summary>
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        /// <summary>
+        /// Configuration setting contains all service related settings
+        /// </summary>
+        /// <param name="services">services parameter</param>
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddTransient<INotesManager, NotesManager>();
             services.AddTransient<INotesRepo, NotesRepo>();
             services.AddTransient<IAccountManager, AccountManager>();
+            services.AddTransient<ILoggerManager, LoggerManager>();
             services.AddTransient<IAccountRepo, AccountRepo>();
             services.AddDbContextPool<UserDbContext>(
                options => options.UseSqlServer(Configuration.GetConnectionString("UserDbConnection")));
@@ -43,7 +62,11 @@ namespace FundooController
             services.AddSwaggerGen();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// <summary>
+        /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// </summary>
+        /// <param name="app">Application builder</param>
+        /// <param name="env">Hosting environment</param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
@@ -54,6 +77,7 @@ namespace FundooController
             {
                 app.UseHsts();
             }
+
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

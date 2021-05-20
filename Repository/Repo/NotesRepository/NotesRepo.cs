@@ -1,26 +1,53 @@
-﻿using CloudinaryDotNet;
-using CloudinaryDotNet.Actions;
-using FundooModel.Notes;
-using FundooRepository.DbContexts;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/////------------------------------------------------------------------------
+////<copyright file="NotesRepo.cs" company="BridgeLabz">
+////author="Bhushan"
+////</copyright>
+////--------------------------------------------------------------------------
 
 namespace FundooRepository.Repo.NotesRepository
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+    using CloudinaryDotNet;
+    using CloudinaryDotNet.Actions;
+    using FundooModel.Notes;
+    using FundooRepository.DbContexts;
+    using Microsoft.Extensions.Configuration;
+
+    /// <summary>
+    /// Notes repository class
+    /// </summary>
     public class NotesRepo : INotesRepo
     {
-        public readonly UserDbContext context;
-        public readonly IConfiguration config;
+        /// <summary>
+        /// User DB context
+        /// </summary>
+        private readonly UserDbContext context;
+
+        /// <summary>
+        /// Configuration interface
+        /// </summary>
+        private readonly IConfiguration config;
+
+        /// <summary>
+        /// Notes repository constructor
+        /// </summary>
+        /// <param name="userDbContext">parameter DB context</param>
+        /// <param name="configuration">parameter Configuration</param>
         public NotesRepo(UserDbContext userDbContext, IConfiguration configuration)
         {
             this.context = userDbContext;
             this.config = configuration;
         }
 
+        /// <summary>
+        /// Add notes
+        /// </summary>
+        /// <param name="notes">parameter notes</param>
+        /// <returns>return notes</returns>
         public async Task<Notes> AddNotes(Notes notes)
         {
             try
@@ -34,6 +61,12 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
+
+        /// <summary>
+        /// Delete notes
+        /// </summary>
+        /// <param name="id">parameter ID</param>
+        /// <returns>returns Notes</returns>
         public async Task<Notes> DeleteNotes(int id)
         {
             try
@@ -45,6 +78,7 @@ namespace FundooRepository.Repo.NotesRepository
                     var result = this.context.SaveChangesAsync();
                     return await Task.Run(() => note);
                 }
+
                 return null;
             }
             catch
@@ -52,6 +86,12 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
+
+        /// <summary>
+        /// Update notes
+        /// </summary>
+        /// <param name="notes">parameter notes</param>
+        /// <returns>returns notes</returns>
         public async Task<Notes> UpdateNotes(Notes notes)
         {
             try
@@ -63,17 +103,21 @@ namespace FundooRepository.Repo.NotesRepository
                     {
                         note.Title = notes.Title;
                     }
+
                     if (notes.Description != null)
                     {
                         note.Description = notes.Description;
                     }
+
                     if (notes.ModifiedTime != null)
                     {
                         note.ModifiedTime = notes.ModifiedTime;
                     }
+
                     var result = this.context.SaveChangesAsync();
                     return await Task.Run(() => notes);
                 }
+
                 return null;
             }
             catch
@@ -82,6 +126,11 @@ namespace FundooRepository.Repo.NotesRepository
             }
         }
 
+        /// <summary>
+        /// Delete from trash
+        /// </summary>
+        /// <param name="id">parameter ID</param>
+        /// <returns>Returns Notes</returns>
         public async Task<Notes> DeleteFromTrash(int id)
         {
             try
@@ -93,6 +142,7 @@ namespace FundooRepository.Repo.NotesRepository
                     var result = this.context.SaveChangesAsync();
                     return await Task.Run(() => note);
                 }
+
                 return null;
             }
             catch
@@ -101,6 +151,10 @@ namespace FundooRepository.Repo.NotesRepository
             }
         }
 
+        /// <summary>
+        /// Get all notes
+        /// </summary>
+        /// <returns>returns all notes</returns>
         public async Task<IEnumerable<Notes>> GetAllNotes()
         {
             try
@@ -110,6 +164,7 @@ namespace FundooRepository.Repo.NotesRepository
                 {
                     return await Task.Run(() => allNotes);
                 }
+
                 return null;
             }
             catch
@@ -117,6 +172,12 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
+
+        /// <summary>
+        /// Get all notes by email address
+        /// </summary>
+        /// <param name="email">parameter email</param>
+        /// <returns>returns list of notes</returns>
         public async Task<IEnumerable<Notes>> GetAllNotesByEmail(string email)
         {
             try
@@ -131,10 +192,11 @@ namespace FundooRepository.Repo.NotesRepository
                         {
                             list.Add(notes);
                         }
-                        
                     }
+
                     return await Task.Run(() => list);
                 }
+
                 return null;
             }
             catch
@@ -142,7 +204,13 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
-        public bool ResetIsTrash(int id)
+
+        /// <summary>
+        /// Set to zero in is Trash column
+        /// </summary>
+        /// <param name="id">Note ID</param>
+        /// <returns>returns status</returns>
+        public async Task<bool> ResetIsTrash(int id)
         {
             try
             {
@@ -150,9 +218,10 @@ namespace FundooRepository.Repo.NotesRepository
                 if (note != null)
                 {
                     note.IsTrash = false;
-                    this.context.SaveChangesAsync();
+                    await Task.Run(() => this.context.SaveChangesAsync());
                     return true;
                 }
+
                 return false;
             }
             catch
@@ -160,7 +229,13 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
-        public bool SetIsTrash(int id)
+
+        /// <summary>
+        /// Set to one in is trash column
+        /// </summary>
+        /// <param name="id">Note ID</param>
+        /// <returns>returns status</returns>
+        public async Task<bool> SetIsTrash(int id)
         {
             try
             {
@@ -168,9 +243,10 @@ namespace FundooRepository.Repo.NotesRepository
                 if (note != null)
                 {
                     note.IsTrash = true;
-                    this.context.SaveChangesAsync();
+                    await Task.Run(() => this.context.SaveChangesAsync());
                     return true;
                 }
+
                 return false;
             }
             catch
@@ -178,7 +254,13 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
-        public bool ResetArchieve(int id)
+
+        /// <summary>
+        /// Reset archive field
+        /// </summary>
+        /// <param name="id">Note ID</param>
+        /// <returns>returns status</returns>
+        public async Task<bool> ResetArchive(int id)
         {
             try
             {
@@ -186,9 +268,10 @@ namespace FundooRepository.Repo.NotesRepository
                 if (note != null)
                 {
                     note.IsArchive = false;
-                    this.context.SaveChangesAsync();
+                    await Task.Run(() => this.context.SaveChangesAsync());
                     return true;
                 }
+
                 return false;
             }
             catch
@@ -196,7 +279,13 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
-        public bool SetArchieve(int id)
+
+        /// <summary>
+        /// Set Archive
+        /// </summary>
+        /// <param name="id">Notes ID</param>
+        /// <returns>returns status</returns>
+        public async Task<bool> SetArchive(int id)
         {
             try
             {
@@ -204,9 +293,10 @@ namespace FundooRepository.Repo.NotesRepository
                 if (note != null)
                 {
                     note.IsArchive = true;
-                    this.context.SaveChangesAsync();
+                    await Task.Run(() => this.context.SaveChangesAsync());
                     return true;
                 }
+
                 return false;
             }
             catch
@@ -214,6 +304,12 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
+
+        /// <summary>
+        /// Reset Pin
+        /// </summary>
+        /// <param name="id">Notes Id</param>
+        /// <returns>returns status</returns>
         public bool ResetPin(int id)
         {
             try
@@ -225,6 +321,7 @@ namespace FundooRepository.Repo.NotesRepository
                     this.context.SaveChangesAsync();
                     return true;
                 }
+
                 return false;
             }
             catch
@@ -232,6 +329,12 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
+
+        /// <summary>
+        /// Set Pin
+        /// </summary>
+        /// <param name="id">Notes ID</param>
+        /// <returns>returns status</returns>
         public bool SetPin(int id)
         {
             try
@@ -243,6 +346,7 @@ namespace FundooRepository.Repo.NotesRepository
                     this.context.SaveChangesAsync();
                     return true;
                 }
+
                 return false;
             }
             catch
@@ -250,6 +354,13 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
+
+        /// <summary>
+        /// Add Remainder
+        /// </summary>
+        /// <param name="id">Notes ID</param>
+        /// <param name="time">parameter time</param>
+        /// <returns>returns status</returns>
         public bool AddRemainder(int id, string time)
         {
             try
@@ -261,6 +372,7 @@ namespace FundooRepository.Repo.NotesRepository
                     this.context.SaveChangesAsync();
                     return true;
                 }
+
                 return false;
             }
             catch
@@ -268,6 +380,12 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
+
+        /// <summary>
+        /// Delete Remainder
+        /// </summary>
+        /// <param name="id">Notes ID</param>
+        /// <returns>returns status</returns>
         public bool DeleteRemainder(int id)
         {
             try
@@ -279,6 +397,7 @@ namespace FundooRepository.Repo.NotesRepository
                     this.context.SaveChangesAsync();
                     return true;
                 }
+
                 return false;
             }
             catch
@@ -286,6 +405,12 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
+
+        /// <summary>
+        /// Add collaborater
+        /// </summary>
+        /// <param name="collaborater">parameter collaborater</param>
+        /// <returns>return collaborater</returns>
         public async Task<Collaborater> AddCollaborater(Collaborater collaborater)
         {
             try
@@ -306,14 +431,20 @@ namespace FundooRepository.Repo.NotesRepository
                         return await Task.Run(() => collaborater);
                     }
                 }
+
                 return null;
             }
             catch
             {
                 throw new Exception();
             }
-
         }
+
+        /// <summary>
+        /// Delete collaborater
+        /// </summary>
+        /// <param name="collaborater">parameter collaborater</param>
+        /// <returns>return collaborater</returns>
         public async Task<Collaborater> DeleteCollaborater(Collaborater collaborater)
         {
             try
@@ -323,7 +454,7 @@ namespace FundooRepository.Repo.NotesRepository
                 {
                     foreach (Collaborater list in collabrate)
                     {
-                        if ( list.ReceiverEmail == collaborater.ReceiverEmail)
+                        if (list.ReceiverEmail == collaborater.ReceiverEmail)
                         {
                             this.context.Collaboraters.Remove(list);
                             await Task.Run(() => this.context.SaveChangesAsync());
@@ -331,6 +462,7 @@ namespace FundooRepository.Repo.NotesRepository
                         }
                     }
                 }
+
                 return null;
             }
             catch
@@ -338,17 +470,24 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
+
+        /// <summary>
+        /// Upload image
+        /// </summary>
+        /// <param name="noteId">parameter note ID</param>
+        /// <param name="imagePath">parameter image path</param>
+        /// <returns>returns image upload result</returns>
         public async Task<ImageUploadResult> UploadImage(int noteId, string imagePath)
         {
             try
             {
                 string cloudName = this.config["Cloudinary:CloudName"];
-                string APIKey = this.config["Cloudinary:APIKey"];
-                string APISecret = this.config["Cloudinary:APISecret"];
+                string apiKey = this.config["Cloudinary:APIKey"];
+                string apiSecret = this.config["Cloudinary:APISecret"];
                 var note = this.context.Notes.Where(noteAtId => noteAtId.NotesId == noteId).SingleOrDefault();
                 if (note != null)
                 {
-                    Account account = new Account(cloudName, APIKey, APISecret);
+                    Account account = new Account(cloudName, apiKey, apiSecret);
                     Cloudinary cloudinary = new Cloudinary(account);
                     var uploadFile = new ImageUploadParams
                     {
@@ -361,6 +500,7 @@ namespace FundooRepository.Repo.NotesRepository
                     var result = this.context.SaveChangesAsync();
                     return await Task.Run(() => uploadResult);
                 }
+
                 return null;
             }
             catch
