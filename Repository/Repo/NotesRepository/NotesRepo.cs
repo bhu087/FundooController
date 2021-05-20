@@ -71,7 +71,7 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var note = this.GetNoteById(id).Result;//this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
+                var note = this.GetNoteById(id).Result;
                 if (note != null && !note.IsTrash)
                 {
                     note.IsTrash = true;
@@ -135,7 +135,8 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
+                var note = this.GetNoteById(id).Result;
+                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null && note.IsTrash)
                 {
                     this.context.Notes.Remove(note);
@@ -214,7 +215,8 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
+                var note = this.GetNoteById(id).Result;
+                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null)
                 {
                     note.IsTrash = false;
@@ -239,7 +241,8 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
+                var note = this.GetNoteById(id).Result;
+                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null)
                 {
                     note.IsTrash = true;
@@ -264,7 +267,8 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
+                var note = this.GetNoteById(id).Result;
+                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null)
                 {
                     note.IsArchive = false;
@@ -289,7 +293,8 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
+                var note = this.GetNoteById(id).Result;
+                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null)
                 {
                     note.IsArchive = true;
@@ -314,7 +319,8 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
+                var note = this.GetNoteById(id).Result;
+                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null)
                 {
                     note.IsPin = false;
@@ -339,7 +345,8 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
+                var note = this.GetNoteById(id).Result;
+                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null)
                 {
                     note.IsPin = true;
@@ -365,7 +372,8 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
+                var note = this.GetNoteById(id).Result;
+                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null)
                 {
                     note.Remainder = time;
@@ -390,7 +398,8 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
+                var note = this.GetNoteById(id).Result;
+                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null)
                 {
                     note.Remainder = null;
@@ -415,7 +424,8 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var note = this.context.Notes.Where(noteId => noteId.NotesId == collaborater.NotesId).SingleOrDefault();
+                var note = this.GetNoteById(collaborater.NotesId).Result;
+                //var note = this.context.Notes.Where(noteId => noteId.NotesId == collaborater.NotesId).SingleOrDefault();
                 if (note != null)
                 {
                     Collaborater newCollaborater = new Collaborater
@@ -484,7 +494,8 @@ namespace FundooRepository.Repo.NotesRepository
                 string cloudName = this.config["Cloudinary:CloudName"];
                 string apiKey = this.config["Cloudinary:APIKey"];
                 string apiSecret = this.config["Cloudinary:APISecret"];
-                var note = this.context.Notes.Where(noteAtId => noteAtId.NotesId == noteId).SingleOrDefault();
+                var note = this.GetNoteById(noteId).Result;
+                //var note = this.context.Notes.Where(noteAtId => noteAtId.NotesId == noteId).SingleOrDefault();
                 if (note != null)
                 {
                     Account account = new Account(cloudName, apiKey, apiSecret);
@@ -512,7 +523,8 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var resultNote = this.context.Notes.Where(note => note.NotesId == id).SingleOrDefault();
+                var resultNote = this.GetNoteById(id).Result;
+                //var resultNote = this.context.Notes.Where(note => note.NotesId == id).SingleOrDefault();
                 return await Task.Run(() => resultNote);
             }
             catch
