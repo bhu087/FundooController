@@ -310,7 +310,7 @@ namespace FundooRepository.Repo.NotesRepository
         /// </summary>
         /// <param name="id">Notes Id</param>
         /// <returns>returns status</returns>
-        public bool ResetPin(int id)
+        public async Task<bool> ResetPin(int id)
         {
             try
             {
@@ -318,7 +318,7 @@ namespace FundooRepository.Repo.NotesRepository
                 if (note != null)
                 {
                     note.IsPin = false;
-                    this.context.SaveChangesAsync();
+                    await Task.Run(() => this.context.SaveChangesAsync());
                     return true;
                 }
 

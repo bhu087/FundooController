@@ -369,19 +369,41 @@ namespace FundooController.Controllers
         }
         [HttpPut]
         [Route("setArchive/{id}")]
-        public ActionResult ResetArchive(int id)
+        public ActionResult SetArchive(int id)
         {
             try
             {
-                Task<bool> response = this.manager.ResetArchive(id);
+                Task<bool> response = this.manager.SetArchive(id);
                 if (response.Result == true)
                 {
-                    this.logger.LogInfo("Reset Archive Successfully, Status : OK");
-                    this.logger.LogDebug("Reset Archive");
-                    return this.Ok(new { Status = true, Message = "Reset Archive successfully", Response = response.Result });
+                    this.logger.LogInfo("Set Archive Successfully, Status : OK");
+                    this.logger.LogDebug("Set Archive");
+                    return this.Ok(new { Status = true, Message = "Set Archive successfully", Response = response.Result });
                 }
-                this.logger.LogError("Archive Not resetted");
-                return this.BadRequest(new { Status = false, Message = "Archive Not resetted", Response = response.Result });
+                this.logger.LogError("Archive Not setted");
+                return this.BadRequest(new { Status = false, Message = "Archive Not setted", Response = response.Result });
+            }
+            catch (Exception e)
+            {
+                this.logger.LogWarn("Exception " + e + ", Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+        [HttpPut]
+        [Route("resetPin/{id}")]
+        public ActionResult ResetPin(int id)
+        {
+            try
+            {
+                Task<bool> response = this.manager.ResetPin(id);
+                if (response.Result == true)
+                {
+                    this.logger.LogInfo("Reset Pin Successfully, Status : OK");
+                    this.logger.LogDebug("Reset Pin");
+                    return this.Ok(new { Status = true, Message = "Reset Pin successfully", Response = response.Result });
+                }
+                this.logger.LogError("Pin Not resetted");
+                return this.BadRequest(new { Status = false, Message = "Pin Not resetted", Response = response.Result });
             }
             catch (Exception e)
             {

@@ -233,5 +233,17 @@ namespace FundooManager.NotesManager
                 throw new Exception();
             }
         }
+
+        public Task<bool> ResetPin(int id)
+        {
+            try
+            {
+                return this.repository.ResetPin(id);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
     }
 }
