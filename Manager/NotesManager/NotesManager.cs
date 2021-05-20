@@ -245,5 +245,41 @@ namespace FundooManager.NotesManager
                 throw new Exception();
             }
         }
+
+        public Task<bool> SetPin(int id)
+        {
+            try
+            {
+                return this.repository.SetPin(id);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+
+        public Task<bool> AddRemainder(int id, string time)
+        {
+            try
+            {
+                return this.repository.AddRemainder(id, time);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+
+        public Task<bool> DeleteRemainder(int id)
+        {
+            try
+            {
+                return this.repository.DeleteRemainder(id);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
     }
 }

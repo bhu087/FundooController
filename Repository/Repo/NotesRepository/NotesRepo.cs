@@ -71,7 +71,7 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
+                var note = this.GetNoteById(id).Result;//this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null && !note.IsTrash)
                 {
                     note.IsTrash = true;
@@ -335,7 +335,7 @@ namespace FundooRepository.Repo.NotesRepository
         /// </summary>
         /// <param name="id">Notes ID</param>
         /// <returns>returns status</returns>
-        public bool SetPin(int id)
+        public async Task<bool> SetPin(int id)
         {
             try
             {
@@ -343,7 +343,7 @@ namespace FundooRepository.Repo.NotesRepository
                 if (note != null)
                 {
                     note.IsPin = true;
-                    this.context.SaveChangesAsync();
+                    await Task.Run(() => this.context.SaveChangesAsync());
                     return true;
                 }
 
@@ -361,7 +361,7 @@ namespace FundooRepository.Repo.NotesRepository
         /// <param name="id">Notes ID</param>
         /// <param name="time">parameter time</param>
         /// <returns>returns status</returns>
-        public bool AddRemainder(int id, string time)
+        public async Task<bool> AddRemainder(int id, string time)
         {
             try
             {
@@ -369,7 +369,7 @@ namespace FundooRepository.Repo.NotesRepository
                 if (note != null)
                 {
                     note.Remainder = time;
-                    this.context.SaveChangesAsync();
+                    await Task.Run(() => this.context.SaveChangesAsync());
                     return true;
                 }
 
@@ -386,7 +386,7 @@ namespace FundooRepository.Repo.NotesRepository
         /// </summary>
         /// <param name="id">Notes ID</param>
         /// <returns>returns status</returns>
-        public bool DeleteRemainder(int id)
+        public async Task<bool> DeleteRemainder(int id)
         {
             try
             {
@@ -394,7 +394,7 @@ namespace FundooRepository.Repo.NotesRepository
                 if (note != null)
                 {
                     note.Remainder = null;
-                    this.context.SaveChangesAsync();
+                    await Task.Run(() => this.context.SaveChangesAsync());
                     return true;
                 }
 
@@ -502,6 +502,18 @@ namespace FundooRepository.Repo.NotesRepository
                 }
 
                 return null;
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+        public async Task<Notes> GetNoteById(int id)
+        {
+            try
+            {
+                var resultNote = this.context.Notes.Where(note => note.NotesId == id).SingleOrDefault();
+                return await Task.Run(() => resultNote);
             }
             catch
             {

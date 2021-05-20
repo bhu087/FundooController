@@ -411,5 +411,71 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
             }
         }
+        [HttpPut]
+        [Route("setPin/{id}")]
+        public ActionResult SetPin(int id)
+        {
+            try
+            {
+                Task<bool> response = this.manager.SetPin(id);
+                if (response.Result == true)
+                {
+                    this.logger.LogInfo("Set Pin Successfully, Status : OK");
+                    this.logger.LogDebug("Set Pin");
+                    return this.Ok(new { Status = true, Message = "Set Pin successfully", Response = response.Result });
+                }
+                this.logger.LogError("Pin Not setted");
+                return this.BadRequest(new { Status = false, Message = "Pin Not setted", Response = response.Result });
+            }
+            catch (Exception e)
+            {
+                this.logger.LogWarn("Exception " + e + ", Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+        [HttpPut]
+        [Route("addReminder/{id}")]
+        public ActionResult AddRemainder(int id, string time)
+        {
+            try
+            {
+                Task<bool> response = this.manager.AddRemainder(id, time);
+                if (response.Result == true)
+                {
+                    this.logger.LogInfo("Set Remainder Successfully, Status : OK");
+                    this.logger.LogDebug("Set Pin");
+                    return this.Ok(new { Status = true, Message = "Set Remainder successfully", Response = response.Result });
+                }
+                this.logger.LogError("Remainder Not setted");
+                return this.BadRequest(new { Status = false, Message = "Remainder Not setted", Response = response.Result });
+            }
+            catch (Exception e)
+            {
+                this.logger.LogWarn("Exception " + e + ", Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+        [HttpPut]
+        [Route("deleteReminder/{id}")]
+        public ActionResult DeleteRemainder(int id)
+        {
+            try
+            {
+                Task<bool> response = this.manager.DeleteRemainder(id);
+                if (response.Result == true)
+                {
+                    this.logger.LogInfo("Delete Remainder Successfully, Status : OK");
+                    this.logger.LogDebug("Delete Pin");
+                    return this.Ok(new { Status = true, Message = "Delete Remainder successfully", Response = response.Result });
+                }
+                this.logger.LogError("Remainder Not Deleted");
+                return this.BadRequest(new { Status = false, Message = "Remainder Not Deleted", Response = response.Result });
+            }
+            catch (Exception e)
+            {
+                this.logger.LogWarn("Exception " + e + ", Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
     }
 }

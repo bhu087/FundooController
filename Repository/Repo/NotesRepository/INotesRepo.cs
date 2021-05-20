@@ -83,5 +83,11 @@ namespace FundooRepository.Repo.NotesRepository
 
         Task<bool> ResetIsTrash(int id);
         Task<bool> SetIsTrash(int id);
+        Task<bool> ResetArchive(int id);
+        Task<bool> SetArchive(int id);
+        Task<bool> ResetPin(int id);
+        Task<bool> SetPin(int id);
+        Task<bool> AddRemainder(int id, string time);
+        Task<bool> DeleteRemainder(int id);
     }
 }
