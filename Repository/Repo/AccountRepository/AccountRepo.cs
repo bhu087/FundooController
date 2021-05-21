@@ -98,7 +98,7 @@ namespace FundooRepository.Repo.AccountRepository
                 {
                     if (login.Password.Equals(this.PasswordDecryption(register.Password)))
                     {
-                        string jwtToken = this.GenerateJWTtokens(register.ID, register.Name);
+                        string jwtToken = this.GenerateJWTtokens(register.Email, register.ID);
                         this.RedisCache(jwtToken);
                         return jwtToken;
                     }
@@ -258,7 +258,7 @@ namespace FundooRepository.Repo.AccountRepository
         /// <param name="id">receiving ID</param>
         /// <param name="name">receiving Name</param>
         /// <returns>returns JWT generated string</returns>
-        public string GenerateJWTtokens(int id, string name)
+        public string GenerateJWTtokens(string email, int id)
         {
             string key = this.config["JwtDetails:JwtKey"];
             try
@@ -267,8 +267,8 @@ namespace FundooRepository.Repo.AccountRepository
                 {
                     Subject = new ClaimsIdentity(new Claim[]
                         {
-                            new Claim("Id", id.ToString()),
-                            new Claim("Name", name)
+                            new Claim("Email", email),
+                            new Claim("Id", id.ToString())
                         }),
                     Expires = DateTime.UtcNow.AddDays(1),
                     SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256Signature)

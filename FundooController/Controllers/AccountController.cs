@@ -9,10 +9,13 @@ namespace FundooController.Controllers
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Security.Claims;
     using System.Threading.Tasks;
     using FundooManager.Account;
     using FundooModel.Account;
     using LoggerService;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     
     /// <summary>
@@ -85,6 +88,7 @@ namespace FundooController.Controllers
             {
                 if (response.Result != null)
                 {
+                    HttpContext.Session.SetString("Token", response.Result);
                     this.logger.LogInfo("Logged in Successfully  Status : OK");
                     this.logger.LogDebug("Debug Successfull : Logged in User");
                     return this.Ok(new { Status = true, Message = "Logged in successfully", Data = response.Result });
@@ -157,5 +161,18 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Exception", Data = e });
             }
         }
+
+        /**public string GetClaims()
+        {
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            if (identity != null)
+            {
+                //IEnumerable<Claim> claims = identity.Claims;
+                // or
+                var val = identity.FindFirst("Email").Value;
+                return val;
+            }
+            return null;
+        } **/
     }
 }

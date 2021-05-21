@@ -9,6 +9,7 @@ namespace FundooController
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using FundooManager.Account;
     using FundooManager.NotesManager;
@@ -16,6 +17,7 @@ namespace FundooController
     using FundooRepository.Repo.AccountRepository;
     using FundooRepository.Repo.NotesRepository;
     using LoggerService;
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.HttpsPolicy;
@@ -25,6 +27,7 @@ namespace FundooController
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Microsoft.IdentityModel.Tokens;
 
     /// <summary>
     /// Startup program
@@ -56,6 +59,13 @@ namespace FundooController
             services.AddTransient<IAccountManager, AccountManager>();
             services.AddTransient<ILoggerManager, LoggerManager>();
             services.AddTransient<IAccountRepo, AccountRepo>();
+
+            services.AddCors();
+            services.AddSession();
+            services.AddDistributedMemoryCache();
+            services.AddAuthentication("Bearer")
+                    .AddJwtBearer("Bearer", options => options.SaveToken = true);
+
             services.AddDbContextPool<UserDbContext>(
                options => options.UseSqlServer(Configuration.GetConnectionString("UserDbConnection")));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
@@ -78,12 +88,14 @@ namespace FundooController
                 app.UseHsts();
             }
 
+            app.UseSession();
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My Test Api v1");
             });
             app.UseHttpsRedirection();
+            app.UseAuthentication();
             app.UseMvc();
         }
     }

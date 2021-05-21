@@ -81,13 +81,61 @@ namespace FundooRepository.Repo.NotesRepository
         /// <returns>returns image upload result</returns>
         Task<ImageUploadResult> UploadImage(int noteId, string imagePath);
 
+        /// <summary>
+        /// Reset the trash
+        /// </summary>
+        /// <param name="id">Note id</param>
+        /// <returns>Returns boolean result</returns>
         Task<bool> ResetIsTrash(int id);
+
+        /// <summary>
+        /// Set the trash
+        /// </summary>
+        /// <param name="id">Note id</param>
+        /// <returns>Returns boolean result</returns>
         Task<bool> SetIsTrash(int id);
+
+        /// <summary>
+        /// Reset the Archive
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <returns>boolean result</returns>
         Task<bool> ResetArchive(int id);
+
+        /// <summary>
+        /// Set the Archive
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <returns>boolean result</returns>
         Task<bool> SetArchive(int id);
+
+        /// <summary>
+        /// Reset the Pin
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <returns>boolean result</returns>
         Task<bool> ResetPin(int id);
+
+        /// <summary>
+        /// Set the Pin
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <returns>boolean result</returns>
         Task<bool> SetPin(int id);
+
+        /// <summary>
+        /// Add remainder
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <param name="time">Given time</param>
+        /// <returns>boolean result</returns>
         Task<bool> AddRemainder(int id, string time);
+
+        /// <summary>
+        /// Delete remainder
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <returns>boolean result</returns>
         Task<bool> DeleteRemainder(int id);
     }
 }

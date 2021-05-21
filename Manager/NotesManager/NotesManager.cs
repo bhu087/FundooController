@@ -6,13 +6,13 @@
 
 namespace FundooManager.NotesManager
 {
-    using FundooRepository.Repo.NotesRepository;
     using System;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
     using CloudinaryDotNet.Actions;
     using FundooModel.Notes;
+    using FundooRepository.Repo.NotesRepository;
 
     /// <summary>
     /// Notes manager class
@@ -22,7 +22,7 @@ namespace FundooManager.NotesManager
         /// <summary>
         /// Notes repository
         /// </summary>
-        public readonly INotesRepo repository;
+        private readonly INotesRepo repository;
 
         /// <summary>
         /// Notes manager constructor
@@ -30,7 +30,7 @@ namespace FundooManager.NotesManager
         /// <param name="notesRepo">parameter notes repository</param>
         public NotesManager(INotesRepo notesRepo)
         {
-            repository = notesRepo;
+            this.repository = notesRepo;
         }
 
         /// <summary>
@@ -186,6 +186,11 @@ namespace FundooManager.NotesManager
             }
         }
 
+        /// <summary>
+        /// Reset the trash
+        /// </summary>
+        /// <param name="id">Note id</param>
+        /// <returns>Returns boolean result</returns>
         public Task<bool> ResetIsTrash(int id)
         {
             try
@@ -198,6 +203,11 @@ namespace FundooManager.NotesManager
             }
         }
 
+        /// <summary>
+        /// Set the trash
+        /// </summary>
+        /// <param name="id">Note id</param>
+        /// <returns>Returns boolean result</returns>
         public Task<bool> SetIsTrash(int id)
         {
             try
@@ -210,6 +220,11 @@ namespace FundooManager.NotesManager
             }
         }
 
+        /// <summary>
+        /// Reset the Archive
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <returns>boolean result</returns>
         public Task<bool> ResetArchive(int id)
         {
             try
@@ -222,6 +237,11 @@ namespace FundooManager.NotesManager
             }
         }
 
+        /// <summary>
+        /// Set the Archive
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <returns>boolean result</returns>
         public Task<bool> SetArchive(int id)
         {
             try
@@ -234,6 +254,11 @@ namespace FundooManager.NotesManager
             }
         }
 
+        /// <summary>
+        /// Reset the Pin
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <returns>boolean result</returns>
         public Task<bool> ResetPin(int id)
         {
             try
@@ -246,6 +271,11 @@ namespace FundooManager.NotesManager
             }
         }
 
+        /// <summary>
+        /// Set the Pin
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <returns>boolean result</returns>
         public Task<bool> SetPin(int id)
         {
             try
@@ -258,6 +288,12 @@ namespace FundooManager.NotesManager
             }
         }
 
+        /// <summary>
+        /// Add remainder
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <param name="time">Given Time</param>
+        /// <returns>boolean result</returns>
         public Task<bool> AddRemainder(int id, string time)
         {
             try
@@ -270,6 +306,11 @@ namespace FundooManager.NotesManager
             }
         }
 
+        /// <summary>
+        /// Delete remainder
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <returns>boolean result</returns>
         public Task<bool> DeleteRemainder(int id)
         {
             try

@@ -14,6 +14,8 @@ namespace FundooController.Controllers
     using FundooManager.NotesManager;
     using FundooModel.Notes;
     using LoggerService;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
 
     /// <summary>
@@ -52,18 +54,24 @@ namespace FundooController.Controllers
         [HttpPost]
         public ActionResult AddNotes(Notes notes)
         {
+            string jwt = HttpContext.Session.GetString("Token");
+            Task<Notes> result = null;
             try
             {
-                Task<Notes> result = this.manager.AddNotes(notes);
-                if (result.Result != null)
+                if (jwt != null)
+
                 {
-                    this.logger.LogInfo("Add Notes Successfully " + result.Result.Title + ", Status : OK");
-                    this.logger.LogDebug("Debug Successfull : Add Notes");
-                    return this.Ok(new { Status = true, Message = "Added Successfully", Response = result.Result });
+                    result = this.manager.AddNotes(notes);
+                    if (result.Result != null)
+                    {
+                        this.logger.LogInfo("Add Notes Successfully " + result.Result.Title + ", Status : OK");
+                        this.logger.LogDebug("Debug Successfull : Add Notes");
+                        return this.Ok(new { Status = true, Message = "Added Successfully", Response = result.Result });
+                    }
                 }
 
                 this.logger.LogError("Notes Not added, Status : Bad Request");
-                return this.BadRequest(new { Status = false, Message = "Not added", Response = result.Result });
+                return this.BadRequest(new { Status = false, Message = "Not added", Response = result });
             }
             catch (Exception e)
             {
@@ -164,6 +172,7 @@ namespace FundooController.Controllers
         [Route("{email}")]
         public ActionResult GetAllNotesByEmail(string email)
         {
+            int id = this.TokenUserId();
             try
             {
                 var result = this.manager.GetAllNotesByEmail(email);
@@ -301,6 +310,11 @@ namespace FundooController.Controllers
             }
         }
 
+        /// <summary>
+        /// Set trash field
+        /// </summary>
+        /// <param name="id">input parameter is id</param>
+        /// <returns>returns action result</returns>
         [HttpPut]
         [Route("setIsTrash/{id}")]
         public ActionResult SetIsTrash(int id)
@@ -323,6 +337,12 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
             }
         }
+
+        /// <summary>
+        /// Reset the trash
+        /// </summary>
+        /// <param name="id">Note id</param>
+        /// <returns>Returns Action result</returns>
         [HttpPut]
         [Route("resetIsTrash/{id}")]
         public ActionResult ResetIsTrash(int id)
@@ -345,6 +365,12 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
             }
         }
+
+        /// <summary>
+        /// Reset the Archive
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <returns>Action result</returns>
         [HttpPut]
         [Route("resetArchive/{id}")]
         public ActionResult ResetArchive(int id)
@@ -367,6 +393,12 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
             }
         }
+
+        /// <summary>
+        /// Set archive
+        /// </summary>
+        /// <param name="id">parameter is id</param>
+        /// <returns>returns action result</returns>
         [HttpPut]
         [Route("setArchive/{id}")]
         public ActionResult SetArchive(int id)
@@ -389,6 +421,12 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
             }
         }
+
+        /// <summary>
+        /// Reset pin field in notes
+        /// </summary>
+        /// <param name="id">notes id</param>
+        /// <returns>Action result</returns>
         [HttpPut]
         [Route("resetPin/{id}")]
         public ActionResult ResetPin(int id)
@@ -411,6 +449,12 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
             }
         }
+
+        /// <summary>
+        /// Set the Pin
+        /// </summary>
+        /// <param name="id">Notes id</param>
+        /// <returns>return action result</returns>
         [HttpPut]
         [Route("setPin/{id}")]
         public ActionResult SetPin(int id)
@@ -433,8 +477,15 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
             }
         }
+
+        /// <summary>
+        /// Add Remainder
+        /// </summary>
+        /// <param name="id">note id</param>
+        /// <param name="time">remainder time</param>
+        /// <returns>return Action result</returns>
         [HttpPut]
-        [Route("addReminder/{id}")]
+        [Route("addRemainder/{id}")]
         public ActionResult AddRemainder(int id, string time)
         {
             try
@@ -455,8 +506,14 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
             }
         }
+
+        /// <summary>
+        /// Delete Remainder
+        /// </summary>
+        /// <param name="id">notes id</param>
+        /// <returns>return action result</returns>
         [HttpPut]
-        [Route("deleteReminder/{id}")]
+        [Route("deleteRemainder/{id}")]
         public ActionResult DeleteRemainder(int id)
         {
             try
@@ -476,6 +533,12 @@ namespace FundooController.Controllers
                 this.logger.LogWarn("Exception " + e + ", Status : Bad Request");
                 return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
             }
+        }
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [NonAction]
+        private int TokenUserId()
+        {
+            return Convert.ToInt32(User.FindFirst("Id").Value);
         }
     }
 }
