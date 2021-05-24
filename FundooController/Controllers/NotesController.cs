@@ -9,12 +9,15 @@ namespace FundooController.Controllers
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Security.Claims;
     using System.Threading.Tasks;
     using CloudinaryDotNet.Actions;
     using FundooManager.NotesManager;
     using FundooModel.Notes;
     using LoggerService;
+    using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Cors;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
 
@@ -23,6 +26,7 @@ namespace FundooController.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "User")]
     public class NotesController : Controller
     {
         /// <summary>
@@ -61,7 +65,9 @@ namespace FundooController.Controllers
                 if (jwt != null)
 
                 {
-                    result = this.manager.AddNotes(notes);
+                    notes.UserID = this.TokenUserId();
+                    string email = this.TokenEmail();
+                    result = this.manager.AddNotes(notes, email);
                     if (result.Result != null)
                     {
                         this.logger.LogInfo("Add Notes Successfully " + result.Result.Title + ", Status : OK");
@@ -85,12 +91,13 @@ namespace FundooController.Controllers
         /// </summary>
         /// <param name="id">Parameter ID</param>
         /// <returns>Action result</returns>
-        [HttpDelete]
-        public ActionResult DeleteNotes(int id)
+        [HttpDelete("{noteId}")]
+        public ActionResult DeleteNotes(int noteId)
         {
             try
             {
-                Task<Notes> result = this.manager.DeleteNotes(id);
+                int userId = this.TokenUserId();
+                Task<Notes> result = this.manager.DeleteNotes(noteId, userId);
                 if (result.Result != null)
                 {
                     this.logger.LogInfo("Moved to trash Successfully " + result.Result.Title + ", Status : OK");
@@ -118,7 +125,8 @@ namespace FundooController.Controllers
         {
             try
             {
-                Task<Notes> result = this.manager.UpdateNotes(notes);
+                int userId = this.TokenUserId();
+                Task<Notes> result = this.manager.UpdateNotes(notes, userId);
                 if (result.Result != null)
                 {
                     this.logger.LogInfo("Notes Updated Successfully " + result.Result.Title + ", Status : OK");
@@ -137,45 +145,17 @@ namespace FundooController.Controllers
         }
 
         /// <summary>
-        /// Get all notes
-        /// </summary>
-        /// <returns>Action result</returns>
-        [HttpGet]
-        public ActionResult GetAllNotes()
-        {
-            try
-            {
-                var result = this.manager.GetAllNotes();
-                if (result.Result != null)
-                {
-                    this.logger.LogInfo("List of notes, Status : OK");
-                    this.logger.LogDebug("Debug Successfull : Get all Notes");
-                    return this.Ok(new { Status = true, Message = "Lists", Response = result.Result });
-                }
-
-                this.logger.LogError("No lists available, Status : Bad Request");
-                return this.BadRequest(new { Status = false, Message = "No list available", Response = result.Result });
-            }
-            catch (Exception e)
-            {
-                this.logger.LogWarn("Exception " + e + ", Status : Bad Request");
-                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
-            }
-        }
-
-        /// <summary>
         /// Get all notes by email
         /// </summary>
         /// <param name="email">parameter email</param>
         /// <returns>Action result</returns>
-        [HttpGet]
-        [Route("{email}")]
-        public ActionResult GetAllNotesByEmail(string email)
+        [HttpGet("allNotes")]
+        public ActionResult GetAllNotes()
         {
-            int id = this.TokenUserId();
             try
             {
-                var result = this.manager.GetAllNotesByEmail(email);
+                int userId = this.TokenUserId();
+                var result = this.manager.GetAllNotes(userId);
                 if (result.Result != null)
                 {
                     this.logger.LogInfo("List of notes by email, Status : OK");
@@ -199,12 +179,13 @@ namespace FundooController.Controllers
         /// <param name="id">parameter ID</param>
         /// <returns>Action result</returns>
         [HttpDelete]
-        [Route("deleteTrash/{id}")]
-        public ActionResult DeleteFromTrash(int id)
+        [Route("deleteTrash/{notesId}")]
+        public ActionResult DeleteFromTrash(int notesId)
         {
             try
             {
-                Task<Notes> result = this.manager.DeleteFromTrash(id);
+                int userId = this.TokenUserId();
+                Task<Notes> result = this.manager.DeleteFromTrash(notesId, userId);
                 if (result.Result != null)
                 {
                     this.logger.LogInfo("Deleted from Trash Successfully, Status : OK");
@@ -233,6 +214,8 @@ namespace FundooController.Controllers
         {
             try
             {
+                collaborater.SenderEmail = this.TokenEmail();
+                collaborater.UserID = this.TokenUserId();
                 Task<Collaborater> result = this.manager.AddCollaborater(collaborater);
                 if (result.Result != null)
                 {
@@ -287,12 +270,13 @@ namespace FundooController.Controllers
         /// <param name="imagePath">parameter image path</param>
         /// <returns>Action result</returns>
         [HttpPost]
-        [Route("uploadImage")]
+        [Route("uploadImage/{noteId}")]
         public ActionResult UploadImage(int noteId, string imagePath)
         {
             try
             {
-                Task<ImageUploadResult> result = this.manager.UploadImage(noteId, imagePath);
+                int userId = this.TokenUserId();
+                Task<ImageUploadResult> result = this.manager.UploadImage(noteId, imagePath, userId);
                 if (result.Result != null)
                 {
                     this.logger.LogInfo("Image Uploaded Successfully, Status : OK");
@@ -316,12 +300,13 @@ namespace FundooController.Controllers
         /// <param name="id">input parameter is id</param>
         /// <returns>returns action result</returns>
         [HttpPut]
-        [Route("setIsTrash/{id}")]
-        public ActionResult SetIsTrash(int id)
+        [Route("setIsTrash/{notesId}")]
+        public ActionResult SetIsTrash(int notesId)
         {
             try
             {
-                Task<bool> response = this.manager.SetIsTrash(id);
+                int userId = this.TokenUserId();
+                Task<bool> response = this.manager.SetIsTrash(notesId, userId);
                 if (response.Result == true)
                 {
                     this.logger.LogInfo("Set trash Successfully, Status : OK");
@@ -343,13 +328,13 @@ namespace FundooController.Controllers
         /// </summary>
         /// <param name="id">Note id</param>
         /// <returns>Returns Action result</returns>
-        [HttpPut]
-        [Route("resetIsTrash/{id}")]
-        public ActionResult ResetIsTrash(int id)
+        [HttpPut("resetIsTrash/{noteId}")]
+        public ActionResult ResetIsTrash(int noteId)
         {
             try
             {
-                Task<bool> response = this.manager.ResetIsTrash(id);
+                int userId = this.TokenUserId();
+                Task<bool> response = this.manager.ResetIsTrash(noteId, userId);
                 if (response.Result == true)
                 {
                     this.logger.LogInfo("Reset trash Successfully, Status : OK");
@@ -372,12 +357,13 @@ namespace FundooController.Controllers
         /// <param name="id">note id</param>
         /// <returns>Action result</returns>
         [HttpPut]
-        [Route("resetArchive/{id}")]
-        public ActionResult ResetArchive(int id)
+        [Route("resetArchive/{noteId}")]
+        public ActionResult ResetArchive(int noteId)
         {
             try
             {
-                Task<bool> response = this.manager.ResetArchive(id);
+                int userId = this.TokenUserId();
+                Task<bool> response = this.manager.ResetArchive(noteId, userId);
                 if (response.Result == true)
                 {
                     this.logger.LogInfo("Reset Archive Successfully, Status : OK");
@@ -400,12 +386,13 @@ namespace FundooController.Controllers
         /// <param name="id">parameter is id</param>
         /// <returns>returns action result</returns>
         [HttpPut]
-        [Route("setArchive/{id}")]
-        public ActionResult SetArchive(int id)
+        [Route("setArchive/{noteId}")]
+        public ActionResult SetArchive(int noteId)
         {
             try
             {
-                Task<bool> response = this.manager.SetArchive(id);
+                int userId = this.TokenUserId();
+                Task<bool> response = this.manager.SetArchive(noteId, userId);
                 if (response.Result == true)
                 {
                     this.logger.LogInfo("Set Archive Successfully, Status : OK");
@@ -428,12 +415,13 @@ namespace FundooController.Controllers
         /// <param name="id">notes id</param>
         /// <returns>Action result</returns>
         [HttpPut]
-        [Route("resetPin/{id}")]
-        public ActionResult ResetPin(int id)
+        [Route("resetPin/{noteId}")]
+        public ActionResult ResetPin(int noteId)
         {
             try
             {
-                Task<bool> response = this.manager.ResetPin(id);
+                int userId = this.TokenUserId();
+                Task<bool> response = this.manager.ResetPin(noteId, userId);
                 if (response.Result == true)
                 {
                     this.logger.LogInfo("Reset Pin Successfully, Status : OK");
@@ -456,12 +444,13 @@ namespace FundooController.Controllers
         /// <param name="id">Notes id</param>
         /// <returns>return action result</returns>
         [HttpPut]
-        [Route("setPin/{id}")]
-        public ActionResult SetPin(int id)
+        [Route("setPin/{noteId}")]
+        public ActionResult SetPin(int noteId)
         {
             try
             {
-                Task<bool> response = this.manager.SetPin(id);
+                int userId = this.TokenUserId();
+                Task<bool> response = this.manager.SetPin(noteId, userId);
                 if (response.Result == true)
                 {
                     this.logger.LogInfo("Set Pin Successfully, Status : OK");
@@ -485,12 +474,13 @@ namespace FundooController.Controllers
         /// <param name="time">remainder time</param>
         /// <returns>return Action result</returns>
         [HttpPut]
-        [Route("addRemainder/{id}")]
-        public ActionResult AddRemainder(int id, string time)
+        [Route("addRemainder/{noteId}")]
+        public ActionResult AddRemainder(int noteId, string time)
         {
             try
             {
-                Task<bool> response = this.manager.AddRemainder(id, time);
+                int userId = this.TokenUserId();
+                Task<bool> response = this.manager.AddRemainder(noteId, time, userId);
                 if (response.Result == true)
                 {
                     this.logger.LogInfo("Set Remainder Successfully, Status : OK");
@@ -513,12 +503,13 @@ namespace FundooController.Controllers
         /// <param name="id">notes id</param>
         /// <returns>return action result</returns>
         [HttpPut]
-        [Route("deleteRemainder/{id}")]
-        public ActionResult DeleteRemainder(int id)
+        [Route("deleteRemainder/{noteId}")]
+        public ActionResult DeleteRemainder(int noteId)
         {
             try
             {
-                Task<bool> response = this.manager.DeleteRemainder(id);
+                int userId = TokenUserId();
+                Task<bool> response = this.manager.DeleteRemainder(noteId, userId);
                 if (response.Result == true)
                 {
                     this.logger.LogInfo("Delete Remainder Successfully, Status : OK");
@@ -534,11 +525,16 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
             }
         }
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [NonAction]
+
         private int TokenUserId()
         {
             return Convert.ToInt32(User.FindFirst("Id").Value);
         }
+
+        private string TokenEmail()
+        {
+            return User.FindFirst("Email").Value;
+        }
+
     }
 }

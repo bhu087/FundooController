@@ -52,11 +52,11 @@ namespace FundooController.Controllers
         /// <param name="register">Parameter Register model</param>
         /// <returns>Action results</returns>
         [HttpPost]
-        public ActionResult RegisterUser(Register register)
+        public ActionResult RegisterUser(User register)
         {
             try
             {
-                Task<Register> response = this.manager.RegisterUser(register);
+                Task<User> response = this.manager.RegisterUser(register);
                 if (response.Result != null)
                 {
                     this.logger.LogInfo("Registered Successfully " + response.Result.Name + " Status : OK");
@@ -161,18 +161,5 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Exception", Data = e });
             }
         }
-
-        /**public string GetClaims()
-        {
-            var identity = HttpContext.User.Identity as ClaimsIdentity;
-            if (identity != null)
-            {
-                //IEnumerable<Claim> claims = identity.Claims;
-                // or
-                var val = identity.FindFirst("Email").Value;
-                return val;
-            }
-            return null;
-        } **/
     }
 }

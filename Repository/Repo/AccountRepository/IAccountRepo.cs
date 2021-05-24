@@ -22,7 +22,7 @@ namespace FundooRepository.Repo.AccountRepository
         /// </summary>
         /// <param name="register">register parameter</param>
         /// <returns>returns Register</returns>
-        Task<Register> RegisterUser(Register register);
+        Task<User> RegisterUser(User register);
 
         /// <summary>
         /// Login User

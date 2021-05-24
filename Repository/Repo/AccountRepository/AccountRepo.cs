@@ -53,20 +53,20 @@ namespace FundooRepository.Repo.AccountRepository
         /// </summary>
         /// <param name="register">register parameter</param>
         /// <returns>returns Register</returns>
-        public async Task<Register> RegisterUser(Register register)
+        public async Task<User> RegisterUser(User register)
         {
             try
             {
-                Register user = await Task.Run(() => this.GetAccountByEmail(register.Email));
+                User user = await Task.Run(() => this.GetAccountByEmail(register.Email));
                 if (user == null)
                 {
-                    Register save = new Register
+                    User save = new User
                     {
                         Name = register.Name,
                         Email = register.Email,
                         Password = this.PasswordEncryption(register.Password)
                     };
-                    this.context.AccountRegisters.Add(save);
+                    this.context.Users.Add(save);
                     var result = await Task.Run(() => this.context.SaveChangesAsync());
                     if (result == 1)
                     {
@@ -93,12 +93,12 @@ namespace FundooRepository.Repo.AccountRepository
         {
             try
             {
-                Register register = await Task.Run(() => this.GetAccountByEmail(login.Email));
+                User register = await Task.Run(() => this.GetAccountByEmail(login.Email));
                 if (register != null)
                 {
                     if (login.Password.Equals(this.PasswordDecryption(register.Password)))
                     {
-                        string jwtToken = this.GenerateJWTtokens(register.Email, register.ID);
+                        string jwtToken = this.GenerateJWTtokens(register.UserID, register.Email);
                         this.RedisCache(jwtToken);
                         return jwtToken;
                     }
@@ -167,11 +167,11 @@ namespace FundooRepository.Repo.AccountRepository
         /// </summary>
         /// <param name="email">parameter email</param>
         /// <returns>returns Register model</returns>
-        public Register GetAccountByEmail(string email)
+        public User GetAccountByEmail(string email)
         {
             try
             {
-                var user = this.context.AccountRegisters.Where(emailId => emailId.Email == email).SingleOrDefault();
+                var user = this.context.Users.Where(emailId => emailId.Email == email).SingleOrDefault();
                 if (user == null)
                 {
                     return null;
@@ -258,20 +258,21 @@ namespace FundooRepository.Repo.AccountRepository
         /// <param name="id">receiving ID</param>
         /// <param name="name">receiving Name</param>
         /// <returns>returns JWT generated string</returns>
-        public string GenerateJWTtokens(string email, int id)
+        public string GenerateJWTtokens(int userId, string userEmail)
         {
-            string key = this.config["JwtDetails:JwtKey"];
+            string key = this.config["Jwt:Key"];
             try
             {
                 var tokenDescriptor = new SecurityTokenDescriptor
                 {
                     Subject = new ClaimsIdentity(new Claim[]
                         {
-                            new Claim("Email", email),
-                            new Claim("Id", id.ToString())
+                            new Claim(ClaimTypes.Role,"User"),
+                            new Claim("Id", userId.ToString()),
+                            new Claim("Email", userEmail)
                         }),
-                    Expires = DateTime.UtcNow.AddDays(1),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256Signature)
+                    Expires = DateTime.Now.AddDays(Convert.ToDouble(config["JwtExpireDays"])),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256Signature)
                 };
                 var securityTokenHandler = new JwtSecurityTokenHandler();
                 var securityToken = securityTokenHandler.CreateToken(tokenDescriptor);

@@ -35,7 +35,7 @@ namespace FundooManager.Account
         /// </summary>
         /// <param name="register">register parameter</param>
         /// <returns>return Register</returns>
-        public Task<Register> RegisterUser(Register register)
+        public Task<User> RegisterUser(User register)
         {
             try
             {

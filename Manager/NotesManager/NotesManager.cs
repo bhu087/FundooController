@@ -38,11 +38,11 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="notes">parameter notes</param>
         /// <returns>return notes</returns>
-        public Task<Notes> AddNotes(Notes notes)
+        public Task<Notes> AddNotes(Notes notes, string email)
         {
             try
             {
-                return this.repository.AddNotes(notes);
+                return this.repository.AddNotes(notes, email);
             }
             catch
             {
@@ -55,11 +55,11 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="id">parameter ID</param>
         /// <returns>returns Notes</returns>
-        public Task<Notes> DeleteNotes(int id)
+        public Task<Notes> DeleteNotes(int notesId, int userId)
         {
             try
             {
-                return this.repository.DeleteNotes(id);
+                return this.repository.DeleteNotes(notesId, userId);
             }
             catch
             {
@@ -72,27 +72,11 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="notes">parameter notes</param>
         /// <returns>returns notes</returns>
-        public Task<Notes> UpdateNotes(Notes notes)
+        public Task<Notes> UpdateNotes(Notes notes, int userId)
         {
             try
             {
-                return this.repository.UpdateNotes(notes);
-            }
-            catch
-            {
-                throw new Exception();
-            }
-        }
-
-        /// <summary>
-        /// Get all notes
-        /// </summary>
-        /// <returns>returns all notes</returns>
-        public Task<IEnumerable<Notes>> GetAllNotes()
-        {
-            try
-            {
-                return this.repository.GetAllNotes();
+                return this.repository.UpdateNotes(notes, userId);
             }
             catch
             {
@@ -105,11 +89,11 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="email">parameter email</param>
         /// <returns>returns list of notes</returns>
-        public Task<IEnumerable<Notes>> GetAllNotesByEmail(string email)
+        public Task<List<Notes>> GetAllNotes(int userId)
         {
             try
             {
-                return this.repository.GetAllNotesByEmail(email);
+                return this.repository.GetAllNotes(userId);
             }
             catch
             {
@@ -122,11 +106,11 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="id">parameter ID</param>
         /// <returns>Returns Notes</returns>
-        public Task<Notes> DeleteFromTrash(int id)
+        public Task<Notes> DeleteFromTrash(int noteId, int userId)
         {
             try
             {
-                return this.repository.DeleteFromTrash(id);
+                return this.repository.DeleteFromTrash(noteId, userId);
             }
             catch
             {
@@ -174,11 +158,11 @@ namespace FundooManager.NotesManager
         /// <param name="noteId">parameter note ID</param>
         /// <param name="imagePath">parameter image path</param>
         /// <returns>returns image upload result</returns>
-        public Task<ImageUploadResult> UploadImage(int noteId, string imagePath)
+        public Task<ImageUploadResult> UploadImage(int noteId, string imagePath, int userId)
         {
             try
             {
-                return this.repository.UploadImage(noteId, imagePath);
+                return this.repository.UploadImage(noteId, imagePath, userId);
             }
             catch
             {
@@ -191,11 +175,11 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="id">Note id</param>
         /// <returns>Returns boolean result</returns>
-        public Task<bool> ResetIsTrash(int id)
+        public Task<bool> ResetIsTrash(int noteId, int userId)
         {
             try
             {
-                return this.repository.ResetIsTrash(id);
+                return this.repository.ResetIsTrash(noteId, userId);
             }
             catch
             {
@@ -208,11 +192,11 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="id">Note id</param>
         /// <returns>Returns boolean result</returns>
-        public Task<bool> SetIsTrash(int id)
+        public Task<bool> SetIsTrash(int noteId, int userId)
         {
             try
             {
-                return this.repository.SetIsTrash(id);
+                return this.repository.SetIsTrash(noteId, userId);
             }
             catch
             {
@@ -225,11 +209,11 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="id">note id</param>
         /// <returns>boolean result</returns>
-        public Task<bool> ResetArchive(int id)
+        public Task<bool> ResetArchive(int noteId, int userId)
         {
             try
             {
-                return this.repository.ResetArchive(id);
+                return this.repository.ResetArchive(noteId, userId);
             }
             catch
             {
@@ -242,11 +226,11 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="id">note id</param>
         /// <returns>boolean result</returns>
-        public Task<bool> SetArchive(int id)
+        public Task<bool> SetArchive(int noteId, int userId)
         {
             try
             {
-                return this.repository.SetArchive(id);
+                return this.repository.SetArchive(noteId, userId);
             }
             catch
             {
@@ -259,11 +243,11 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="id">note id</param>
         /// <returns>boolean result</returns>
-        public Task<bool> ResetPin(int id)
+        public Task<bool> ResetPin(int noteId, int userId)
         {
             try
             {
-                return this.repository.ResetPin(id);
+                return this.repository.ResetPin(noteId, userId);
             }
             catch
             {
@@ -276,11 +260,11 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="id">note id</param>
         /// <returns>boolean result</returns>
-        public Task<bool> SetPin(int id)
+        public Task<bool> SetPin(int noteId, int userId)
         {
             try
             {
-                return this.repository.SetPin(id);
+                return this.repository.SetPin(noteId, userId);
             }
             catch
             {
@@ -294,11 +278,11 @@ namespace FundooManager.NotesManager
         /// <param name="id">note id</param>
         /// <param name="time">Given Time</param>
         /// <returns>boolean result</returns>
-        public Task<bool> AddRemainder(int id, string time)
+        public Task<bool> AddRemainder(int noteId, string time, int userId)
         {
             try
             {
-                return this.repository.AddRemainder(id, time);
+                return this.repository.AddRemainder(noteId, time, userId);
             }
             catch
             {
@@ -311,11 +295,11 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="id">note id</param>
         /// <returns>boolean result</returns>
-        public Task<bool> DeleteRemainder(int id)
+        public Task<bool> DeleteRemainder(int noteId, int userId)
         {
             try
             {
-                return this.repository.DeleteRemainder(id);
+                return this.repository.DeleteRemainder(noteId, userId);
             }
             catch
             {
