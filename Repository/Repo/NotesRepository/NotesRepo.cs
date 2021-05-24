@@ -492,6 +492,30 @@ namespace FundooRepository.Repo.NotesRepository
             }
         }
 
+        public async Task<bool> SetColor(int noteId, int userId, string color)
+        {
+            var note = this.GetNoteById(noteId).Result;
+            if (note != null && note.UserID == userId)
+            {
+                note.Color = color;
+                await Task.Run(() => this.context.SaveChangesAsync());
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> DeleteColor(int noteId, int userId)
+        {
+            var note = this.GetNoteById(noteId).Result;
+            if (note != null && note.UserID == userId)
+            {
+                note.Color = string.Empty;
+                await Task.Run(() => this.context.SaveChangesAsync());
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Upload image
         /// </summary>

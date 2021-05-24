@@ -526,6 +526,52 @@ namespace FundooController.Controllers
             }
         }
 
+        [HttpPut("setColor/{noteId}/{color}")]
+        public ActionResult SetColor(int noteId, string color)
+        {
+            try
+            {
+                int userId = TokenUserId();
+                Task<bool> response = this.manager.SetColor(noteId, userId, color);
+                if (response.Result == true)
+                {
+                    this.logger.LogInfo("set color Successfully, Status : OK");
+                    this.logger.LogDebug("Set color");
+                    return this.Ok(new { Status = true, Message = "Set color successfully", Response = response.Result });
+                }
+                this.logger.LogError("Color not setted");
+                return this.BadRequest(new { Status = false, Message = "color not setted", Response = response.Result });
+            }
+            catch (Exception e)
+            {
+                this.logger.LogWarn("Exception " + e + ", Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+
+        [HttpPut("deleteColor/{noteId}")]
+        public ActionResult DeleteColor(int noteId)
+        {
+            try
+            {
+                int userId = TokenUserId();
+                Task<bool> response = this.manager.DeleteColor(noteId, userId);
+                if (response.Result == true)
+                {
+                    this.logger.LogInfo("color delete Successfully, Status : OK");
+                    this.logger.LogDebug("Deleted color");
+                    return this.Ok(new { Status = true, Message = "Color delete successfully", Response = response.Result });
+                }
+                this.logger.LogError("Color not Deleted");
+                return this.BadRequest(new { Status = false, Message = "color not Deleted", Response = response.Result });
+            }
+            catch (Exception e)
+            {
+                this.logger.LogWarn("Exception " + e + ", Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+
         private int TokenUserId()
         {
             return Convert.ToInt32(User.FindFirst("Id").Value);

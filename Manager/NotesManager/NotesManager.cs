@@ -306,5 +306,29 @@ namespace FundooManager.NotesManager
                 throw new Exception();
             }
         }
+
+        public Task<bool> SetColor(int noteId, int userId, string color)
+        {
+            try
+            {
+                return this.repository.SetColor(noteId, userId, color);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+
+        public Task<bool> DeleteColor(int noteId, int userId)
+        {
+            try
+            {
+                return this.repository.DeleteColor(noteId, userId);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
     }
 }

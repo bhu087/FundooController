@@ -131,5 +131,9 @@ namespace FundooManager.NotesManager
         /// <param name="id">note id</param>
         /// <returns>boolean result</returns>
         Task<bool> DeleteRemainder(int id, int userId);
+
+        Task<bool> SetColor(int noteId, int userId, string color);
+
+        Task<bool> DeleteColor(int noteId, int userId);
     }
 }

@@ -6,6 +6,7 @@
 
 namespace FundooRepository.Repo.AccountRepository
 {
+    using Experimental.System.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Configuration;
@@ -21,6 +22,7 @@ namespace FundooRepository.Repo.AccountRepository
     using Microsoft.Extensions.Configuration;
     using Microsoft.IdentityModel.Tokens;
     using StackExchange.Redis;
+    using System.IO;
 
     /// <summary>
     /// Account repository class
@@ -37,6 +39,7 @@ namespace FundooRepository.Repo.AccountRepository
         /// </summary>
         private readonly IConfiguration config;
 
+        private MessageQueue messageQueue = new MessageQueue();
         /// <summary>
         /// Account repository constructor
         /// </summary>
@@ -57,13 +60,13 @@ namespace FundooRepository.Repo.AccountRepository
         {
             try
             {
-                User user = await Task.Run(() => this.GetAccountByEmail(register.Email));
+                User user = await Task.Run(() => this.GetAccountByEmail(register.Email.ToLower()));
                 if (user == null)
                 {
                     User save = new User
                     {
                         Name = register.Name,
-                        Email = register.Email,
+                        Email = register.Email.ToLower(),
                         Password = this.PasswordEncryption(register.Password)
                     };
                     this.context.Users.Add(save);
@@ -93,12 +96,12 @@ namespace FundooRepository.Repo.AccountRepository
         {
             try
             {
-                User register = await Task.Run(() => this.GetAccountByEmail(login.Email));
+                User register = await Task.Run(() => this.GetAccountByEmail(login.Email.ToLower()));
                 if (register != null)
                 {
                     if (login.Password.Equals(this.PasswordDecryption(register.Password)))
                     {
-                        string jwtToken = this.GenerateJWTtokens(register.UserID, register.Email);
+                        string jwtToken = this.GenerateJWTtokens(register.UserID, register.Email.ToLower());
                         this.RedisCache(jwtToken);
                         return jwtToken;
                     }
@@ -121,11 +124,12 @@ namespace FundooRepository.Repo.AccountRepository
         {
             try
             {
-                var user = await Task.Run(() => this.GetAccountByEmail(email));
+                var user = await Task.Run(() => this.GetAccountByEmail(email.ToLower()));
                 if (user != null)
                 {
                     string subject = "Password from Fundoo", body = "Email: " + user.Email + "\nPassword: " + this.PasswordDecryption(user.Password);
-                    this.SendMail(subject, body);
+                    this.MsmqService();
+                    this.AddToQueue(email, subject, body);
                     return await Task.Run(() => "Success");
                 }
 
@@ -146,11 +150,12 @@ namespace FundooRepository.Repo.AccountRepository
         {
             try
             {
-                var user = this.GetAccountByEmail(email);
+                var user = this.GetAccountByEmail(email.ToLower());
                 if (user != null)
                 {
                     string subject = "Reset Link for Fundoo", body = "https://localhost:44337/swagger/index.html";
-                    this.SendMail(subject, body);
+                    this.MsmqService();
+                    this.AddToQueue(email, subject, body);
                     return await Task.Run(() => "Success");
                 }
 
@@ -296,6 +301,62 @@ namespace FundooRepository.Repo.AccountRepository
             IDatabase database = connectionMultiplexer.GetDatabase();
             database.StringSet(cacheKey, jwtToken);
             database.StringGet(cacheKey);
+        }
+
+        public MessageQueue MsmqService()
+        {
+            string queuePath = @".\private$\FundooQueue";
+            if (MessageQueue.Exists(queuePath))
+            {
+                this.messageQueue = new MessageQueue(queuePath);
+                return messageQueue;
+            }
+            else
+            {
+                this.messageQueue = MessageQueue.Create(queuePath);
+                return messageQueue;
+            }
+        }
+        public void AddToQueue(string email, string subject, string body)
+        {
+            EmailDetails emailDetails = new EmailDetails
+            {
+                Email = email,
+                Subject = subject,
+                Body = body
+            };
+            this.messageQueue.Formatter = new XmlMessageFormatter(new Type[] { typeof(EmailDetails) });
+
+            this.messageQueue.ReceiveCompleted += this.ReceiveFromQueue;
+
+            this.messageQueue.Send(emailDetails);
+
+            this.messageQueue.BeginReceive();
+
+            this.messageQueue.Close();
+        }
+
+        public void ReceiveFromQueue(object sender, ReceiveCompletedEventArgs e)
+        {
+            try
+            {
+                var msg = this.messageQueue.EndReceive(e.AsyncResult);
+
+                var email = msg.Body.ToString();
+
+                this.SendMail("Forget", "Body");
+                using (StreamWriter file = new StreamWriter(@"I:\Utility\Fundoo.txt", true))
+                {
+                    file.WriteLine(email);
+                }
+
+                this.messageQueue.BeginReceive();
+            }
+            catch (MessageQueueException qexception)
+            {
+                Console.WriteLine(qexception);
+            }
+
         }
     }
 }

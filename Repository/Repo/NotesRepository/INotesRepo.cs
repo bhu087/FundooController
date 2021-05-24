@@ -51,7 +51,7 @@ namespace FundooRepository.Repo.NotesRepository
         /// </summary>
         /// <param name="id">parameter ID</param>
         /// <returns>Returns Notes</returns>
-        Task<Notes> DeleteFromTrash(int id, int userId);
+        Task<Notes> DeleteFromTrash(int noteId, int userId);
 
         /// <summary>
         /// Add collaborater
@@ -80,42 +80,42 @@ namespace FundooRepository.Repo.NotesRepository
         /// </summary>
         /// <param name="id">Note id</param>
         /// <returns>Returns boolean result</returns>
-        Task<bool> ResetIsTrash(int id, int userId);
+        Task<bool> ResetIsTrash(int noteId, int userId);
 
         /// <summary>
         /// Set the trash
         /// </summary>
         /// <param name="id">Note id</param>
         /// <returns>Returns boolean result</returns>
-        Task<bool> SetIsTrash(int id, int userId);
+        Task<bool> SetIsTrash(int noteId, int userId);
 
         /// <summary>
         /// Reset the Archive
         /// </summary>
         /// <param name="id">note id</param>
         /// <returns>boolean result</returns>
-        Task<bool> ResetArchive(int id, int userId);
+        Task<bool> ResetArchive(int noteId, int userId);
 
         /// <summary>
         /// Set the Archive
         /// </summary>
         /// <param name="id">note id</param>
         /// <returns>boolean result</returns>
-        Task<bool> SetArchive(int id, int userId);
+        Task<bool> SetArchive(int noteId, int userId);
 
         /// <summary>
         /// Reset the Pin
         /// </summary>
         /// <param name="id">note id</param>
         /// <returns>boolean result</returns>
-        Task<bool> ResetPin(int id, int userId);
+        Task<bool> ResetPin(int noteId, int userId);
 
         /// <summary>
         /// Set the Pin
         /// </summary>
         /// <param name="id">note id</param>
         /// <returns>boolean result</returns>
-        Task<bool> SetPin(int id, int userId);
+        Task<bool> SetPin(int noteId, int userId);
 
         /// <summary>
         /// Add remainder
@@ -123,13 +123,15 @@ namespace FundooRepository.Repo.NotesRepository
         /// <param name="id">note id</param>
         /// <param name="time">Given time</param>
         /// <returns>boolean result</returns>
-        Task<bool> AddRemainder(int id, string time, int userId);
+        Task<bool> AddRemainder(int noteId, string time, int userId);
 
         /// <summary>
         /// Delete remainder
         /// </summary>
         /// <param name="id">note id</param>
         /// <returns>boolean result</returns>
-        Task<bool> DeleteRemainder(int id, int userId);
+        Task<bool> DeleteRemainder(int noteId, int userId);
+        Task<bool> SetColor(int noteId,int userId, string color);
+        Task<bool> DeleteColor(int noteId, int userId);
     }
 }
