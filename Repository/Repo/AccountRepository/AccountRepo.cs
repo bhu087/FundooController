@@ -23,7 +23,14 @@ namespace FundooRepository.Repo.AccountRepository
     using Microsoft.IdentityModel.Tokens;
     using StackExchange.Redis;
     using System.IO;
-
+    public class ReceiveCompleteMessage : EventArgs
+    {
+        public IAsyncResult AsyncResult { get; set; }
+        public Message Message { get; }
+        public string Email {get; set;}
+        public string Subject { get; set; }
+        public string Body { get; set; }
+    }
     /// <summary>
     /// Account repository class
     /// </summary>
@@ -38,6 +45,8 @@ namespace FundooRepository.Repo.AccountRepository
         /// Configuration field
         /// </summary>
         private readonly IConfiguration config;
+        private IDatabase database;
+        ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect("127.0.0.1:6379");
 
         private MessageQueue messageQueue = new MessageQueue();
         /// <summary>
@@ -102,7 +111,7 @@ namespace FundooRepository.Repo.AccountRepository
                     if (login.Password.Equals(this.PasswordDecryption(register.Password)))
                     {
                         string jwtToken = this.GenerateJWTtokens(register.UserID, register.Email.ToLower());
-                        this.RedisCache(jwtToken);
+                        this.SaveToRedisCache("Login", jwtToken);
                         return jwtToken;
                     }
                 }
@@ -294,15 +303,17 @@ namespace FundooRepository.Repo.AccountRepository
         /// Store to Redis cache
         /// </summary>
         /// <param name="jwtToken">receiving JWT token to store cache</param>
-        public void RedisCache(string jwtToken)
+        public void SaveToRedisCache(string key, string jwtToken)
         {
-            var cacheKey = this.config["Radis:Key"];
-            ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect("127.0.0.1:6379");
-            IDatabase database = connectionMultiplexer.GetDatabase();
+            string cacheKey = key;
+            //var cacheKey = this.config["Radis:Key"];
+            database = this.connectionMultiplexer.GetDatabase();
             database.StringSet(cacheKey, jwtToken);
-            database.StringGet(cacheKey);
         }
-
+        public void DeleteFromRedisCache(string key)
+        {
+            database.KeyDelete(key);
+        }
         public MessageQueue MsmqService()
         {
             string queuePath = @".\private$\FundooQueue";
@@ -335,19 +346,16 @@ namespace FundooRepository.Repo.AccountRepository
 
             this.messageQueue.Close();
         }
-
         public void ReceiveFromQueue(object sender, ReceiveCompletedEventArgs e)
         {
             try
             {
                 var msg = this.messageQueue.EndReceive(e.AsyncResult);
-
-                var email = msg.Body.ToString();
-
-                this.SendMail("Forget", "Body");
+                var emailDetails = (EmailDetails)msg.Body;
+                this.SendMail(emailDetails.Subject, emailDetails.Body);
                 using (StreamWriter file = new StreamWriter(@"I:\Utility\Fundoo.txt", true))
                 {
-                    file.WriteLine(email);
+                    file.WriteLine(emailDetails.Subject);
                 }
 
                 this.messageQueue.BeginReceive();
