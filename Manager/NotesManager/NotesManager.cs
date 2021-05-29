@@ -123,7 +123,7 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="collaborater">parameter collaborater</param>
         /// <returns>return collaborater</returns>
-        public Task<Collaborater> AddCollaborater(Collaborater collaborater)
+        public Task<Collaborator> AddCollaborater(Collaborator collaborater)
         {
             try
             {
@@ -140,7 +140,7 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="collaborater">parameter collaborater</param>
         /// <returns>return collaborater</returns>
-        public Task<Collaborater> DeleteCollaborater(Collaborater collaborater)
+        public Task<Collaborator> DeleteCollaborater(Collaborator collaborater)
         {
             try
             {

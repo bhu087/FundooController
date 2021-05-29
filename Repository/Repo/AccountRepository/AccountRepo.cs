@@ -6,31 +6,24 @@
 
 namespace FundooRepository.Repo.AccountRepository
 {
-    using Experimental.System.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Configuration;
     using System.IdentityModel.Tokens.Jwt;
+    using System.IO;
     using System.Linq;
     using System.Net;
     using System.Net.Mail;
     using System.Security.Claims;
     using System.Text;
     using System.Threading.Tasks;
+    using Experimental.System.Messaging;
     using FundooModel.Account;
     using FundooRepository.DbContexts;
     using Microsoft.Extensions.Configuration;
     using Microsoft.IdentityModel.Tokens;
     using StackExchange.Redis;
-    using System.IO;
-    public class ReceiveCompleteMessage : EventArgs
-    {
-        public IAsyncResult AsyncResult { get; set; }
-        public Message Message { get; }
-        public string Email {get; set;}
-        public string Subject { get; set; }
-        public string Body { get; set; }
-    }
+
     /// <summary>
     /// Account repository class
     /// </summary>
@@ -45,10 +38,22 @@ namespace FundooRepository.Repo.AccountRepository
         /// Configuration field
         /// </summary>
         private readonly IConfiguration config;
-        private IDatabase database;
-        ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect("127.0.0.1:6379");
 
+        /// <summary>
+        /// database for cache
+        /// </summary>
+        private IDatabase database;
+
+        /// <summary>
+        /// Connection multiplexer
+        /// </summary>
+        private ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect("127.0.0.1:6379");
+
+        /// <summary>
+        /// Message Queue
+        /// </summary>
         private MessageQueue messageQueue = new MessageQueue();
+
         /// <summary>
         /// Account repository constructor
         /// </summary>
@@ -269,8 +274,8 @@ namespace FundooRepository.Repo.AccountRepository
         /// <summary>
         /// Generate JWT tokens
         /// </summary>
-        /// <param name="id">receiving ID</param>
-        /// <param name="name">receiving Name</param>
+        /// <param name="userId">receiving ID</param>
+        /// <param name="userEmail">receiving Name</param>
         /// <returns>returns JWT generated string</returns>
         public string GenerateJWTtokens(int userId, string userEmail)
         {
@@ -281,11 +286,11 @@ namespace FundooRepository.Repo.AccountRepository
                 {
                     Subject = new ClaimsIdentity(new Claim[]
                         {
-                            new Claim(ClaimTypes.Role,"User"),
+                            new Claim(ClaimTypes.Role, "User"),
                             new Claim("Id", userId.ToString()),
                             new Claim("Email", userEmail)
                         }),
-                    Expires = DateTime.Now.AddDays(Convert.ToDouble(config["JwtExpireDays"])),
+                    Expires = DateTime.Now.AddDays(Convert.ToDouble(this.config["JwtExpireDays"])),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256Signature)
                 };
                 var securityTokenHandler = new JwtSecurityTokenHandler();
@@ -300,34 +305,51 @@ namespace FundooRepository.Repo.AccountRepository
         }
 
         /// <summary>
-        /// Store to Redis cache
+        /// Store to cache
         /// </summary>
+        /// <param name="key">Key value</param>
         /// <param name="jwtToken">receiving JWT token to store cache</param>
         public void SaveToRedisCache(string key, string jwtToken)
         {
             string cacheKey = key;
-            //var cacheKey = this.config["Radis:Key"];
-            database = this.connectionMultiplexer.GetDatabase();
-            database.StringSet(cacheKey, jwtToken);
+            this.database = this.connectionMultiplexer.GetDatabase();
+            this.database.StringSet(cacheKey, jwtToken);
         }
+
+        /// <summary>
+        /// Delete the entry in cache by particular key
+        /// </summary>
+        /// <param name="key">Key value</param>
         public void DeleteFromRedisCache(string key)
         {
-            database.KeyDelete(key);
+            this.database.KeyDelete(key);
         }
+
+        /// <summary>
+        /// It checks for Queue is present or not.
+        /// </summary>
+        /// <returns>Return Queue</returns>
         public MessageQueue MsmqService()
         {
             string queuePath = @".\private$\FundooQueue";
             if (MessageQueue.Exists(queuePath))
             {
                 this.messageQueue = new MessageQueue(queuePath);
-                return messageQueue;
+                return this.messageQueue;
             }
             else
             {
                 this.messageQueue = MessageQueue.Create(queuePath);
-                return messageQueue;
+                return this.messageQueue;
             }
         }
+
+        /// <summary>
+        /// Add to queue
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="subject"></param>
+        /// <param name="body"></param>
         public void AddToQueue(string email, string subject, string body)
         {
             EmailDetails emailDetails = new EmailDetails
@@ -346,6 +368,12 @@ namespace FundooRepository.Repo.AccountRepository
 
             this.messageQueue.Close();
         }
+
+        /// <summary>
+        /// Receive from queue
+        /// </summary>
+        /// <param name="sender">Sender object</param>
+        /// <param name="e">Evenet of Receive Completed</param>
         public void ReceiveFromQueue(object sender, ReceiveCompletedEventArgs e)
         {
             try
@@ -364,7 +392,6 @@ namespace FundooRepository.Repo.AccountRepository
             {
                 Console.WriteLine(qexception);
             }
-
         }
     }
 }

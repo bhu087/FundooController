@@ -89,9 +89,9 @@ namespace FundooController.Controllers
         /// <summary>
         /// Delete notes by Identity number
         /// </summary>
-        /// <param name="id">Parameter ID</param>
+        /// <param name="noteId">Parameter ID</param>
         /// <returns>Action result</returns>
-        [HttpDelete("{noteId}")]
+        [HttpPut("{noteId}")]
         public ActionResult DeleteNotes(int noteId)
         {
             try
@@ -145,9 +145,8 @@ namespace FundooController.Controllers
         }
 
         /// <summary>
-        /// Get all notes by email
+        /// Get all notes
         /// </summary>
-        /// <param name="email">parameter email</param>
         /// <returns>Action result</returns>
         [HttpGet("allNotes")]
         public ActionResult GetAllNotes()
@@ -176,7 +175,7 @@ namespace FundooController.Controllers
         /// <summary>
         /// Delete from trash
         /// </summary>
-        /// <param name="id">parameter ID</param>
+        /// <param name="notesId">parameter ID</param>
         /// <returns>Action result</returns>
         [HttpDelete]
         [Route("deleteTrash/{notesId}")]
@@ -210,13 +209,13 @@ namespace FundooController.Controllers
         /// <returns>Action result</returns>
         [HttpPost]
         [Route("addCollaborater")]
-        public ActionResult AddCollaborater(Collaborater collaborater)
+        public ActionResult AddCollaborater(Collaborator collaborater)
         {
             try
             {
                 collaborater.SenderEmail = this.TokenEmail();
                 collaborater.UserID = this.TokenUserId();
-                Task<Collaborater> result = this.manager.AddCollaborater(collaborater);
+                Task<Collaborator> result = this.manager.AddCollaborater(collaborater);
                 if (result.Result != null)
                 {
                     this.logger.LogInfo("Collaborater added Successfully, Status : OK");
@@ -241,11 +240,11 @@ namespace FundooController.Controllers
         /// <returns>Action result</returns>
         [HttpDelete]
         [Route("deleteCollaborater")]
-        public ActionResult DeleteCollaborater(Collaborater collaborater)
+        public ActionResult DeleteCollaborater(Collaborator collaborater)
         {
             try
             {
-                Task<Collaborater> result = this.manager.DeleteCollaborater(collaborater);
+                Task<Collaborator> result = this.manager.DeleteCollaborater(collaborater);
                 if (result.Result != null)
                 {
                     this.logger.LogInfo("Delete collabrator Successfully, Status : OK");
@@ -269,8 +268,7 @@ namespace FundooController.Controllers
         /// <param name="noteId">parameter note ID</param>
         /// <param name="imagePath">parameter image path</param>
         /// <returns>Action result</returns>
-        [HttpPost]
-        [Route("uploadImage/{noteId}")]
+        [HttpPut("uploadImage/{noteId}")]
         public ActionResult UploadImage(int noteId, string imagePath)
         {
             try
@@ -297,10 +295,9 @@ namespace FundooController.Controllers
         /// <summary>
         /// Set trash field
         /// </summary>
-        /// <param name="id">input parameter is id</param>
+        /// <param name="notesId">input parameter is id</param>
         /// <returns>returns action result</returns>
-        [HttpPut]
-        [Route("setIsTrash/{notesId}")]
+        [HttpPut("setIsTrash/{notesId}")]
         public ActionResult SetIsTrash(int notesId)
         {
             try
@@ -326,7 +323,7 @@ namespace FundooController.Controllers
         /// <summary>
         /// Reset the trash
         /// </summary>
-        /// <param name="id">Note id</param>
+        /// <param name="noteId">Note id</param>
         /// <returns>Returns Action result</returns>
         [HttpPut("resetIsTrash/{noteId}")]
         public ActionResult ResetIsTrash(int noteId)
@@ -354,10 +351,9 @@ namespace FundooController.Controllers
         /// <summary>
         /// Reset the Archive
         /// </summary>
-        /// <param name="id">note id</param>
+        /// <param name="noteId">note id</param>
         /// <returns>Action result</returns>
-        [HttpPut]
-        [Route("resetArchive/{noteId}")]
+        [HttpPut("resetArchive/{noteId}")]
         public ActionResult ResetArchive(int noteId)
         {
             try
@@ -383,10 +379,9 @@ namespace FundooController.Controllers
         /// <summary>
         /// Set archive
         /// </summary>
-        /// <param name="id">parameter is id</param>
+        /// <param name="noteId">parameter is id</param>
         /// <returns>returns action result</returns>
-        [HttpPut]
-        [Route("setArchive/{noteId}")]
+        [HttpPut("setArchive/{noteId}")]
         public ActionResult SetArchive(int noteId)
         {
             try
@@ -412,10 +407,9 @@ namespace FundooController.Controllers
         /// <summary>
         /// Reset pin field in notes
         /// </summary>
-        /// <param name="id">notes id</param>
+        /// <param name="noteId">notes id</param>
         /// <returns>Action result</returns>
-        [HttpPut]
-        [Route("resetPin/{noteId}")]
+        [HttpPut("resetPin/{noteId}")]
         public ActionResult ResetPin(int noteId)
         {
             try
@@ -441,10 +435,9 @@ namespace FundooController.Controllers
         /// <summary>
         /// Set the Pin
         /// </summary>
-        /// <param name="id">Notes id</param>
+        /// <param name="noteId">Notes id</param>
         /// <returns>return action result</returns>
-        [HttpPut]
-        [Route("setPin/{noteId}")]
+        [HttpPut("setPin/{noteId}")]
         public ActionResult SetPin(int noteId)
         {
             try
@@ -470,11 +463,10 @@ namespace FundooController.Controllers
         /// <summary>
         /// Add Remainder
         /// </summary>
-        /// <param name="id">note id</param>
+        /// <param name="noteId">note note id</param>
         /// <param name="time">remainder time</param>
         /// <returns>return Action result</returns>
-        [HttpPut]
-        [Route("addRemainder/{noteId}")]
+        [HttpPut("addRemainder/{noteId}")]
         public ActionResult AddRemainder(int noteId, string time)
         {
             try
@@ -500,10 +492,9 @@ namespace FundooController.Controllers
         /// <summary>
         /// Delete Remainder
         /// </summary>
-        /// <param name="id">notes id</param>
+        /// <param name="noteId">notes id</param>
         /// <returns>return action result</returns>
-        [HttpPut]
-        [Route("deleteRemainder/{noteId}")]
+        [HttpPut("deleteRemainder/{noteId}")]
         public ActionResult DeleteRemainder(int noteId)
         {
             try
@@ -526,6 +517,13 @@ namespace FundooController.Controllers
             }
         }
 
+        /// <summary>
+        /// Set color name to User Id
+        /// </summary>
+        /// <param name="noteId">Note Id</param>
+        /// <param name="color">Note color
+        /// </param>
+        /// <returns>return action result</returns>
         [HttpPut("setColor/{noteId}/{color}")]
         public ActionResult SetColor(int noteId, string color)
         {
@@ -549,6 +547,11 @@ namespace FundooController.Controllers
             }
         }
 
+        /// <summary>
+        /// Delete color
+        /// </summary>
+        /// <param name="noteId"></param>
+        /// <returns>return action result</returns>
         [HttpPut("deleteColor/{noteId}")]
         public ActionResult DeleteColor(int noteId)
         {
@@ -572,11 +575,19 @@ namespace FundooController.Controllers
             }
         }
 
+        /// <summary>
+        /// user Id
+        /// </summary>
+        /// <returns>user Id</returns>
         private int TokenUserId()
         {
             return Convert.ToInt32(User.FindFirst("Id").Value);
         }
-
+        
+        /// <summary>
+        /// returns User email
+        /// </summary>
+        /// <returns>return Email</returns>
         private string TokenEmail()
         {
             return User.FindFirst("Email").Value;

@@ -16,6 +16,8 @@ namespace FundooRepository.Repo.NotesRepository
     using FundooModel.Notes;
     using FundooRepository.DbContexts;
     using Microsoft.Extensions.Configuration;
+    using Newtonsoft.Json;
+    using StackExchange.Redis;
 
     /// <summary>
     /// Notes repository class
@@ -26,6 +28,16 @@ namespace FundooRepository.Repo.NotesRepository
         /// User DB context
         /// </summary>
         private readonly UserDbContext context;
+
+        /// <summary>
+        /// database for cache
+        /// </summary>
+        private IDatabase database;
+
+        /// <summary>
+        /// Connection multiplexer
+        /// </summary>
+        private ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect("127.0.0.1:6379");
 
         /// <summary>
         /// Configuration interface
@@ -47,6 +59,7 @@ namespace FundooRepository.Repo.NotesRepository
         /// Add notes
         /// </summary>
         /// <param name="notes">parameter notes</param>
+        /// /// <param name="userEmail">parameter user Email</param>
         /// <returns>return notes</returns>
         public async Task<Notes> AddNotes(Notes notes, string userEmail)
         {
@@ -54,14 +67,14 @@ namespace FundooRepository.Repo.NotesRepository
             {
                 var val = this.context.Notes.Add(notes);
                 var result = await this.context.SaveChangesAsync();
-                Collaborater coll = new Collaborater
+                Collaborator coll = new Collaborator
                 {
                     NotesId = val.Entity.NotesId,
                     UserID = notes.UserID,
                     ReceiverEmail = userEmail,
                     SenderEmail = userEmail
                 };
-                var res = this.context.Collaborater.Add(coll);
+                var res = this.context.Collaborator.Add(coll);
                 var results = this.context.SaveChangesAsync();
                 return await Task.Run(() => notes);
             }
@@ -74,7 +87,8 @@ namespace FundooRepository.Repo.NotesRepository
         /// <summary>
         /// Delete notes
         /// </summary>
-        /// <param name="id">parameter ID</param>
+        /// <param name="noteId">parameter note Id</param>
+        /// /// <param name="userId">parameter User Id</param>
         /// <returns>returns Notes</returns>
         public async Task<Notes> DeleteNotes(int noteId, int userId)
         {
@@ -100,6 +114,7 @@ namespace FundooRepository.Repo.NotesRepository
         /// Update notes
         /// </summary>
         /// <param name="notes">parameter notes</param>
+        /// <param name="userId">parameter User ID</param>
         /// <returns>returns notes</returns>
         public async Task<Notes> UpdateNotes(Notes notes, int userId)
         {
@@ -138,14 +153,14 @@ namespace FundooRepository.Repo.NotesRepository
         /// <summary>
         /// Delete from trash
         /// </summary>
-        /// <param name="id">parameter ID</param>
+        /// <param name="noteId">parameter note id</param>
+        /// <param name="userId">parameter user ID</param>
         /// <returns>Returns Notes</returns>
-        public async Task<Notes> DeleteFromTrash(int id, int userId)
+        public async Task<Notes> DeleteFromTrash(int noteId, int userId)
         {
             try
             {
-                var note = this.GetNoteById(id).Result;
-                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
+                var note = this.GetNoteById(noteId).Result;
                 if (note != null && note.IsTrash && note.UserID == userId)
                 {
                     this.context.Notes.Remove(note);
@@ -164,16 +179,24 @@ namespace FundooRepository.Repo.NotesRepository
         /// <summary>
         /// Get all notes by email address
         /// </summary>
-        /// <param name="email">parameter email</param>
+        /// <param name="userId">parameter user Id</param>
         /// <returns>returns list of notes</returns>
         public async Task<List<Notes>> GetAllNotes(int userId)
         {
             try
             {
+                this.database = this.connectionMultiplexer.GetDatabase();
+                string key = userId + "GetAllNotes";
+                var cacheList = this.database.StringGet(key);
+                if (!cacheList.IsNull)
+                {
+                    var cacheNotes = JsonConvert.DeserializeObject<List<Notes>>(cacheList);
+                    return cacheNotes;
+                }
                 List<Notes> list = new List<Notes>();
-                var allNotes = this.context.Notes.Join(this.context.Collaborater,
-                        Notes => Notes.NotesId,
-                        Collaborater => Collaborater.NotesId,
+                var allNotes = this.context.Notes.Join(this.context.Collaborator, 
+                    Notes => Notes.NotesId, 
+                    Collaborater => Collaborater.NotesId,
                         (Notes, Collaborater) => new Notes
                         {
                             NotesId = Collaborater.NotesId,
@@ -187,8 +210,7 @@ namespace FundooRepository.Repo.NotesRepository
                             IsArchive = Notes.IsArchive,
                             IsPin = Notes.IsPin,
                             IsTrash = Notes.IsTrash
-                        }
-                       );
+                        });
                 foreach (var data in allNotes)
                 {
                     if (data.UserID == userId)
@@ -196,7 +218,8 @@ namespace FundooRepository.Repo.NotesRepository
                         list.Add(data);
                     }
                 }
-                return list;
+                this.SaveToRedisCache(key, list);
+                return await Task.Run(() => list);
             }
             catch
             {
@@ -204,6 +227,11 @@ namespace FundooRepository.Repo.NotesRepository
             }
         }
 
+        /// <summary>
+        /// Get user by Email
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns>return the user id</returns>
         public string GetUserIdByEmail(string email)
         {
             var account = this.context.Users.Where(accounts => accounts.Email == email).SingleOrDefault();
@@ -211,12 +239,15 @@ namespace FundooRepository.Repo.NotesRepository
             {
                 return null;
             }
+
             return account.UserID.ToString();
         }
+
         /// <summary>
         /// Set to zero in is Trash column
         /// </summary>
-        /// <param name="id">Note ID</param>
+        /// <param name="noteId">Note ID</param>
+        /// <param name="userId">User ID</param>
         /// <returns>returns status</returns>
         public async Task<bool> ResetIsTrash(int noteId, int userId)
         {
@@ -241,7 +272,8 @@ namespace FundooRepository.Repo.NotesRepository
         /// <summary>
         /// Set to one in is trash column
         /// </summary>
-        /// <param name="id">Note ID</param>
+        /// <param name="noteId">Note ID</param>
+        /// <param name="userId">User ID</param>
         /// <returns>returns status</returns>
         public async Task<bool> SetIsTrash(int noteId, int userId)
         {
@@ -266,14 +298,14 @@ namespace FundooRepository.Repo.NotesRepository
         /// <summary>
         /// Reset archive field
         /// </summary>
-        /// <param name="id">Note ID</param>
+        /// <param name="noteId">Note ID</param>
+        /// <param name="userId">User ID</param>
         /// <returns>returns status</returns>
         public async Task<bool> ResetArchive(int noteId, int userId)
         {
             try
             {
                 var note = this.GetNoteById(noteId).Result;
-                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null && note.UserID == userId)
                 {
                     note.IsArchive = false;
@@ -292,14 +324,14 @@ namespace FundooRepository.Repo.NotesRepository
         /// <summary>
         /// Set Archive
         /// </summary>
-        /// <param name="id">Notes ID</param>
+        /// <param name="noteId">Notes ID</param>
+        /// <param name="userId">User ID</param>
         /// <returns>returns status</returns>
         public async Task<bool> SetArchive(int noteId, int userId)
         {
             try
             {
                 var note = this.GetNoteById(noteId).Result;
-                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null && note.UserID == userId)
                 {
                     note.IsArchive = true;
@@ -318,14 +350,14 @@ namespace FundooRepository.Repo.NotesRepository
         /// <summary>
         /// Reset Pin
         /// </summary>
-        /// <param name="id">Notes Id</param>
+        /// <param name="noteId">Notes Id</param>
+        /// <param name="userId">User Id</param>
         /// <returns>returns status</returns>
         public async Task<bool> ResetPin(int noteId, int userId)
         {
             try
             {
                 var note = this.GetNoteById(noteId).Result;
-                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null && note.UserID == userId)
                 {
                     note.IsPin = false;
@@ -344,14 +376,14 @@ namespace FundooRepository.Repo.NotesRepository
         /// <summary>
         /// Set Pin
         /// </summary>
-        /// <param name="id">Notes ID</param>
+        /// <param name="noteId">Notes ID</param>
+        /// <param name="userId">User ID</param>
         /// <returns>returns status</returns>
         public async Task<bool> SetPin(int noteId, int userId)
         {
             try
             {
                 var note = this.GetNoteById(noteId).Result;
-                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null && note.UserID == userId)
                 {
                     note.IsPin = true;
@@ -370,15 +402,15 @@ namespace FundooRepository.Repo.NotesRepository
         /// <summary>
         /// Add Remainder
         /// </summary>
-        /// <param name="id">Notes ID</param>
+        /// <param name="noteId">Notes ID</param>
         /// <param name="time">parameter time</param>
+        /// <param name="userId">User Id</param>
         /// <returns>returns status</returns>
         public async Task<bool> AddRemainder(int noteId, string time, int userId)
         {
             try
             {
                 var note = this.GetNoteById(noteId).Result;
-                //var note = this.context.Notes.Where(notesId => notesId.NotesId == id).SingleOrDefault();
                 if (note != null && note.UserID == userId)
                 {
                     note.Remainder = time;
@@ -397,7 +429,8 @@ namespace FundooRepository.Repo.NotesRepository
         /// <summary>
         /// Delete Remainder
         /// </summary>
-        /// <param name="id">Notes ID</param>
+        /// <param name="noteId">Notes ID</param>
+        /// <param name="userId">User ID</param>
         /// <returns>returns status</returns>
         public async Task<bool> DeleteRemainder(int noteId, int userId)
         {
@@ -420,35 +453,35 @@ namespace FundooRepository.Repo.NotesRepository
         }
 
         /// <summary>
-        /// Add collaborater
+        /// Add collaborator
         /// </summary>
-        /// <param name="collaborater">parameter collaborater</param>
-        /// <returns>return collaborater</returns>
-        public async Task<Collaborater> AddCollaborater(Collaborater collaborater)
+        /// <param name="collaborator">parameter collaborator</param>
+        /// <returns>return collaborator</returns>
+        public async Task<Collaborator> AddCollaborater(Collaborator collaborator)
         {
             try
             {
-                string collaboratorUserId = this.GetUserIdByEmail(collaborater.ReceiverEmail);
+                string collaboratorUserId = this.GetUserIdByEmail(collaborator.ReceiverEmail);
                 int collUserId = int.Parse(collaboratorUserId);
-                bool duplicateStatus = this.CollaboratorDuplicatesCheck(collUserId, collaborater.NotesId, collaborater.ReceiverEmail);
+                bool duplicateStatus = this.CollaboratorDuplicatesCheck(collUserId, collaborator.NotesId, collaborator.ReceiverEmail);
                 if (collaboratorUserId != null && !duplicateStatus)
                 {
-                    var note = this.GetNoteById(collaborater.NotesId).Result;
+                    var note = this.GetNoteById(collaborator.NotesId).Result;
 
-                    if (note != null && note.UserID == collaborater.UserID)
+                    if (note != null && note.UserID == collaborator.UserID)
                     {
-                        Collaborater newCollaborater = new Collaborater
+                        Collaborator newCollaborater = new Collaborator
                         {
-                            SenderEmail = collaborater.SenderEmail,
-                            ReceiverEmail = collaborater.ReceiverEmail,
+                            SenderEmail = collaborator.SenderEmail,
+                            ReceiverEmail = collaborator.ReceiverEmail,
                             UserID = collUserId,
-                            NotesId = collaborater.NotesId
+                            NotesId = collaborator.NotesId
                         };
-                        this.context.Collaborater.Add(newCollaborater);
+                        this.context.Collaborator.Add(newCollaborater);
                         var result = this.context.SaveChangesAsync();
                         if (result != null)
                         {
-                            return await Task.Run(() => collaborater);
+                            return await Task.Run(() => collaborator);
                         }
                     }
                 }
@@ -462,24 +495,24 @@ namespace FundooRepository.Repo.NotesRepository
         }
 
         /// <summary>
-        /// Delete collaborater
+        /// Delete collaborator
         /// </summary>
-        /// <param name="collaborater">parameter collaborater</param>
-        /// <returns>return collaborater</returns>
-        public async Task<Collaborater> DeleteCollaborater(Collaborater collaborater)
+        /// <param name="collaborator">parameter collaborator</param>
+        /// <returns>return collaborator</returns>
+        public async Task<Collaborator> DeleteCollaborater(Collaborator collaborator)
         {
             try
             {
-                var collabrate = this.context.Collaborater.Where(notes => notes.NotesId == collaborater.NotesId).ToList();
+                var collabrate = this.context.Collaborator.Where(notes => notes.NotesId == collaborator.NotesId).ToList();
                 if (collabrate != null)
                 {
-                    foreach (Collaborater list in collabrate)
+                    foreach (Collaborator list in collabrate)
                     {
-                        if (list.UserID == collaborater.UserID)
+                        if (list.UserID == collaborator.UserID)
                         {
-                            this.context.Collaborater.Remove(list);
+                            this.context.Collaborator.Remove(list);
                             await Task.Run(() => this.context.SaveChangesAsync());
-                            return collaborater;
+                            return collaborator;
                         }
                     }
                 }
@@ -492,6 +525,13 @@ namespace FundooRepository.Repo.NotesRepository
             }
         }
 
+        /// <summary>
+        /// Set Color
+        /// </summary>
+        /// <param name="noteId">Note ID</param>
+        /// <param name="userId">User ID</param>
+        /// <param name="color">Color Name</param>
+        /// <returns>return boolean value</returns>
         public async Task<bool> SetColor(int noteId, int userId, string color)
         {
             var note = this.GetNoteById(noteId).Result;
@@ -501,9 +541,16 @@ namespace FundooRepository.Repo.NotesRepository
                 await Task.Run(() => this.context.SaveChangesAsync());
                 return true;
             }
+
             return false;
         }
 
+        /// <summary>
+        /// Delete Color
+        /// </summary>
+        /// <param name="noteId">Note ID</param>
+        /// <param name="userId">User ID</param>
+        /// <returns>return boolean</returns>
         public async Task<bool> DeleteColor(int noteId, int userId)
         {
             var note = this.GetNoteById(noteId).Result;
@@ -513,6 +560,7 @@ namespace FundooRepository.Repo.NotesRepository
                 await Task.Run(() => this.context.SaveChangesAsync());
                 return true;
             }
+
             return false;
         }
 
@@ -521,6 +569,7 @@ namespace FundooRepository.Repo.NotesRepository
         /// </summary>
         /// <param name="noteId">parameter note ID</param>
         /// <param name="imagePath">parameter image path</param>
+        /// <param name="userId">parameter user ID</param>
         /// <returns>returns image upload result</returns>
         public async Task<ImageUploadResult> UploadImage(int noteId, string imagePath, int userId)
         {
@@ -530,7 +579,6 @@ namespace FundooRepository.Repo.NotesRepository
                 string apiKey = this.config["Cloudinary:APIKey"];
                 string apiSecret = this.config["Cloudinary:APISecret"];
                 var note = this.GetNoteById(noteId).Result;
-                //var note = this.context.Notes.Where(noteAtId => noteAtId.NotesId == noteId).SingleOrDefault();
                 if (note != null && note.UserID == userId)
                 {
                     Account account = new Account(cloudName, apiKey, apiSecret);
@@ -554,6 +602,12 @@ namespace FundooRepository.Repo.NotesRepository
                 throw new Exception();
             }
         }
+        
+        /// <summary>
+        /// Get note by Id
+        /// </summary>
+        /// <param name="noteId">Note ID</param>
+        /// <returns>Return Note by note ID</returns>
         public async Task<Notes> GetNoteById(int noteId)
         {
             try
@@ -567,17 +621,36 @@ namespace FundooRepository.Repo.NotesRepository
             }
         }
 
+        /// <summary>
+        /// Collaborator Duplicates Check
+        /// </summary>
+        /// <param name="userId">User ID</param>
+        /// <param name="noteId">Note ID</param>
+        /// <param name="receiverEmail">Receiver Email</param>
+        /// <returns>return status</returns>
         public bool CollaboratorDuplicatesCheck(int userId, int noteId, string receiverEmail)
         {
-            var collaborate = this.context.Collaborater.Where(user => user.UserID == userId).ToList();
-            foreach (var collUsers in  collaborate)
+            var collaborate = this.context.Collaborator.Where(user => user.UserID == userId).ToList();
+            foreach (var collUsers in collaborate)
             {
                 if (collUsers.UserID == userId && collUsers.NotesId == noteId && collUsers.ReceiverEmail == receiverEmail)
                 {
                     return true;
                 }
             }
+
             return false;
+        }
+
+        /// <summary>
+        /// Store to cache
+        /// </summary>
+        /// <param name="key">Key value</param>
+        /// <param name="jwtToken">receiving JWT token to store cache</param>
+        public void SaveToRedisCache(string key, List<Notes> notes)
+        {
+            this.database = this.connectionMultiplexer.GetDatabase();
+            database.StringSet(key, JsonConvert.SerializeObject(notes));
         }
     }
 }

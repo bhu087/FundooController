@@ -58,14 +58,14 @@ namespace FundooManager.NotesManager
         /// </summary>
         /// <param name="collaborater">parameter collaborater</param>
         /// <returns>return collaborater</returns>
-        Task<Collaborater> AddCollaborater(Collaborater collaborater);
+        Task<Collaborator> AddCollaborater(Collaborator collaborater);
 
         /// <summary>
         /// Delete collaborater
         /// </summary>
         /// <param name="collaborater">parameter collaborater</param>
         /// <returns>return collaborater</returns>
-        Task<Collaborater> DeleteCollaborater(Collaborater collaborater);
+        Task<Collaborator> DeleteCollaborater(Collaborator collaborater);
 
         /// <summary>
         /// Upload image

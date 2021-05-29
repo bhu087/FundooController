@@ -22,4 +22,11 @@
     <ProjectReference Include="..\ModelClass\FundooModel.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Repo\NotesRepository\NotesRepo.cs">
+      <ExcludeFromSourceAnalysis>True</ExcludeFromSourceAnalysis>
+      <ExcludeFromStyleCop>True</ExcludeFromStyleCop>
+    </Compile>
+  </ItemGroup>
+
 </Project>
