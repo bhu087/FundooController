@@ -141,7 +141,9 @@ namespace FundooRepository.Repo.AccountRepository
                 var user = await Task.Run(() => this.GetAccountByEmail(email.ToLower()));
                 if (user != null)
                 {
-                    string subject = "Password from Fundoo", body = "Email: " + user.Email + "\nPassword: " + this.PasswordDecryption(user.Password);
+                    string token = this.GenerateJWTtokens(user.UserID, user.Email);
+                    string subject = "Fundoo Reset Link";
+                    string body = "http://localhost:4200/reset?token=" + token;
                     this.MsmqService();
                     this.AddToQueue(email, subject, body);
                     return await Task.Run(() => "Success");
@@ -160,17 +162,16 @@ namespace FundooRepository.Repo.AccountRepository
         /// </summary>
         /// <param name="email">email parameter</param>
         /// <returns>returns success result</returns>
-        public async Task<string> ResetPassword(string email)
+        public async Task<string> ResetPassword(string email, string password)
         {
             try
             {
                 var user = this.GetAccountByEmail(email.ToLower());
                 if (user != null)
                 {
-                    string subject = "Reset Link for Fundoo", body = "https://localhost:44337/swagger/index.html";
-                    this.MsmqService();
-                    this.AddToQueue(email, subject, body);
-                    return await Task.Run(() => "Success");
+                    user.Password = this.PasswordEncryption(password);
+                    await this.context.SaveChangesAsync();
+                    return "success";
                 }
 
                 return null;
@@ -235,7 +236,7 @@ namespace FundooRepository.Repo.AccountRepository
                 };
                 smtp.Send(mail);
             }
-            catch
+            catch(Exception e)
             {
                 throw new Exception();
             }

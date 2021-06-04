@@ -63,7 +63,13 @@ namespace FundooController
             services.AddTransient<IAccountRepo, AccountRepo>();
 
             
-            services.AddCors();
+            services.AddCors(o => o.AddPolicy("CorsPolicy", builder => {
+                builder
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .WithOrigins("http://localhost:4200");
+
+            }));
             services.AddSession();
             services.AddDistributedMemoryCache();
             
@@ -131,6 +137,10 @@ namespace FundooController
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Fundoo Api");
             });
+            app.UseCors(x => x.AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .SetIsOriginAllowed(origin => true) // allow any origin
+                  .AllowCredentials());
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseMvc();

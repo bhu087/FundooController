@@ -8,6 +8,7 @@ namespace FundooController.Controllers
 {
     using System;
     using System.Collections.Generic;
+    using System.IdentityModel.Tokens.Jwt;
     using System.Linq;
     using System.Security.Claims;
     using System.Threading.Tasks;
@@ -79,23 +80,22 @@ namespace FundooController.Controllers
         /// </summary>
         /// <param name="login">Parameter Login</param>
         /// <returns>Action results</returns>
-        [HttpPost]
-        [Route("Login")]
-        public ActionResult LoginUser(Login login)
+        [HttpPost("Login")]
+        public async Task<ActionResult> LoginUser(Login login)
         {
-            Task<string> response = this.manager.LoginUser(login);
+            string response = await this.manager.LoginUser(login);
             try
             {
-                if (response.Result != null)
+                if (response != null)
                 {
-                    HttpContext.Session.SetString("Token", response.Result);
+                    HttpContext.Session.SetString("Token", response);
                     this.logger.LogInfo("Logged in Successfully  Status : OK");
                     this.logger.LogDebug("Debug Successfull : Logged in User");
-                    return this.Ok(new { Status = true, Message = "Logged in successfully", Data = response.Result });
+                    return this.Ok(new { Status = true, Message = "Logged in successfully", Data = response });
                 }
 
                 this.logger.LogError("Not Registered Status : Bad Request");
-                return this.BadRequest(new { Status = false, Message = "Not Logged in", Data = response.Result });
+                return this.BadRequest(new { Status = false, Message = "Not Logged in", Data = response });
             }
             catch (Exception e)
             {
@@ -139,21 +139,26 @@ namespace FundooController.Controllers
         /// <param name="email">Parameter email</param>
         /// <returns>Action result</returns>
         [HttpPost]
-        [Route("Reset/{email}")]
-        public ActionResult ResetPassword(string email)
+        [Route("Reset/{password}")]
+        public ActionResult ResetPassword(string password)
         {
-            Task<string> response = this.manager.ResetPassword(email);
+            var token = HttpContext.Request?.Headers["token"];
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(token);
+            var tokenS = jsonToken as JwtSecurityToken;
+            var email = tokenS.Claims.First(claim => claim.Type == "Email").Value;
+            Task<string> response = this.manager.ResetPassword(email , password);
             try
             {
                 if (response.Result != null)
                 {
-                    this.logger.LogInfo("Reset Link sent to your Email successfully Status : OK");
+                    this.logger.LogInfo("Reset password successfully Status : OK");
                     this.logger.LogDebug("Debug Successfull : reset password");
-                    return this.Ok(new { Status = true, Message = "Reset Link sent to your Email successfully", Data = response.Result });
+                    return this.Ok(new { Status = true, Message = "Reset password successfully", Data = response.Result });
                 }
 
-                this.logger.LogError("Account not exist for Email : " + email + " Status : Bad Request");
-                return this.BadRequest(new { Status = false, Message = "Account not exist", Data = response.Result });
+                this.logger.LogError("invalid Link/Expired :  Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "invalid Link/Expired", Data = response.Result });
             }
             catch (Exception e)
             {

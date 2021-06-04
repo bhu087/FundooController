@@ -86,11 +86,11 @@ namespace FundooManager.Account
         /// </summary>
         /// <param name="email">parameter email</param>
         /// <returns>returns string value</returns>
-        public Task<string> ResetPassword(string email)
+        public Task<string> ResetPassword(string email, string password)
         {
             try
             {
-                return this.repo.ResetPassword(email);
+                return this.repo.ResetPassword(email, password);
             }
             catch
             {

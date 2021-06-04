@@ -43,6 +43,6 @@ namespace FundooRepository.Repo.AccountRepository
         /// </summary>
         /// <param name="email">email parameter</param>
         /// <returns>returns success result</returns>
-        Task<string> ResetPassword(string email);
+        Task<string> ResetPassword(string email, string password);
     }
 }
