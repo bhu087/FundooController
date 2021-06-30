@@ -330,5 +330,29 @@ namespace FundooManager.NotesManager
                 throw new Exception();
             }
         }
+
+        public Task<List<Notes>> GetArchivedNotes(int userId)
+        {
+            try
+            {
+                return this.repository.GetArchivedNotes(userId);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+
+        public Task<List<Notes>> GetTrashNotes(int userId)
+        {
+            try
+            {
+                return this.repository.GetTrashNotes(userId);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
     }
 }

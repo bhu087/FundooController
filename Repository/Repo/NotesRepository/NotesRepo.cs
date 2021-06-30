@@ -120,7 +120,8 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                var note = this.context.Notes.Where(notesId => notesId.NotesId == userId).SingleOrDefault();
+                var note = this.context.Notes.Where(notesId => notesId.NotesId == notes.NotesId).SingleOrDefault();
+                //var collab = this.context.Collaborator.Where();
                 if (note != null && !note.IsTrash && !note.IsArchive && note.UserID == userId)
                 {
                     if (notes.Title != null)
@@ -136,6 +137,10 @@ namespace FundooRepository.Repo.NotesRepository
                     if (notes.ModifiedTime != null)
                     {
                         note.ModifiedTime = notes.ModifiedTime;
+                    }
+                    if (notes.Color != null)
+                    {
+                        note.Color = notes.Color;
                     }
 
                     var result = this.context.SaveChangesAsync();
@@ -185,17 +190,64 @@ namespace FundooRepository.Repo.NotesRepository
         {
             try
             {
-                this.database = this.connectionMultiplexer.GetDatabase();
-                string key = userId + "GetAllNotes";
-                var cacheList = this.database.StringGet(key);
-                if (!cacheList.IsNull)
-                {
-                    var cacheNotes = JsonConvert.DeserializeObject<List<Notes>>(cacheList);
-                    return cacheNotes;
-                }
+                //this.database = this.connectionMultiplexer.GetDatabase();
+                //string key = userId + "GetAllNotes";
+                //var cacheList = this.database.StringGet(key);
+                //if (!cacheList.IsNull)
+                //{
+                //    var cacheNotes = JsonConvert.DeserializeObject<List<Notes>>(cacheList);
+                //    return cacheNotes;
+                //}
                 List<Notes> list = new List<Notes>();
                 var allNotes = this.context.Notes.Join(this.context.Collaborator, 
                     Notes => Notes.NotesId, 
+                    Collaborater => Collaborater.NotesId,
+                        (Notes, Collaborater) => new Notes
+                        {
+                            NotesId = Collaborater.NotesId,
+                            UserID = Collaborater.UserID,
+                            Title = Notes.Title,
+                            Color = Notes.Color,
+                            Description = Notes.Description,
+                            CreatedTime = Notes.CreatedTime,
+                            ModifiedTime = Notes.ModifiedTime,
+                            Remainder = Notes.Remainder,
+                            Image = Notes.Image,
+                            IsArchive = Notes.IsArchive,
+                            IsPin = Notes.IsPin,
+                            IsTrash = Notes.IsTrash
+                        });
+                foreach (var data in allNotes)
+                {
+                    if (data.UserID == userId && !data.IsTrash && !data.IsArchive)
+                    {
+                        list.Add(data);
+                    }
+                }
+                //this.SaveToRedisCache(key, list);
+                return await Task.Run(() => list);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+
+        public async Task<List<Notes>> GetArchivedNotes(int userId)
+        {
+            try
+            {
+                //this.database = this.connectionMultiplexer.GetDatabase();
+                //string key = userId + "GetAllNotes";
+                //var cacheList = this.database.StringGet(key);
+                //if (!cacheList.IsNull)
+                //{
+                //    var cacheNotes = JsonConvert.DeserializeObject<List<Notes>>(cacheList);
+                //    return cacheNotes;
+                //}
+                List<Notes> list = new List<Notes>();
+                var allNotes = this.context.Notes.Join(this.context.Collaborator,
+                    Notes => Notes.NotesId,
                     Collaborater => Collaborater.NotesId,
                         (Notes, Collaborater) => new Notes
                         {
@@ -209,16 +261,64 @@ namespace FundooRepository.Repo.NotesRepository
                             Image = Notes.Image,
                             IsArchive = Notes.IsArchive,
                             IsPin = Notes.IsPin,
-                            IsTrash = Notes.IsTrash
+                            IsTrash = Notes.IsTrash,
+                            Color = Notes.Color
                         });
                 foreach (var data in allNotes)
                 {
-                    if (data.UserID == userId)
+                    if (data.UserID == userId && data.IsArchive)
                     {
                         list.Add(data);
                     }
                 }
-                this.SaveToRedisCache(key, list);
+                //this.SaveToRedisCache(key, list);
+                return await Task.Run(() => list);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+
+        public async Task<List<Notes>> GetTrashNotes(int userId)
+        {
+            try
+            {
+                //this.database = this.connectionMultiplexer.GetDatabase();
+                //string key = userId + "GetAllNotes";
+                //var cacheList = this.database.StringGet(key);
+                //if (!cacheList.IsNull)
+                //{
+                //    var cacheNotes = JsonConvert.DeserializeObject<List<Notes>>(cacheList);
+                //    return cacheNotes;
+                //}
+                List<Notes> list = new List<Notes>();
+                var allNotes = this.context.Notes.Join(this.context.Collaborator,
+                    Notes => Notes.NotesId,
+                    Collaborater => Collaborater.NotesId,
+                        (Notes, Collaborater) => new Notes
+                        {
+                            NotesId = Collaborater.NotesId,
+                            UserID = Collaborater.UserID,
+                            Title = Notes.Title,
+                            Description = Notes.Description,
+                            CreatedTime = Notes.CreatedTime,
+                            ModifiedTime = Notes.ModifiedTime,
+                            Remainder = Notes.Remainder,
+                            Image = Notes.Image,
+                            IsArchive = Notes.IsArchive,
+                            IsPin = Notes.IsPin,
+                            IsTrash = Notes.IsTrash,
+                            Color = Notes.Color
+                        });
+                foreach (var data in allNotes)
+                {
+                    if (data.UserID == userId && data.IsTrash)
+                    {
+                        list.Add(data);
+                    }
+                }
+                //this.SaveToRedisCache(key, list);
                 return await Task.Run(() => list);
             }
             catch

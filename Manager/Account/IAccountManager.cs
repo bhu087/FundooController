@@ -10,6 +10,7 @@ namespace FundooManager.Account
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
+    using CloudinaryDotNet.Actions;
     using FundooModel.Account;
 
     /// <summary>
@@ -44,5 +45,9 @@ namespace FundooManager.Account
         /// <param name="email">parameter email</param>
         /// <returns>returns string value</returns>
         Task<string> ResetPassword(string email, string password);
+
+        Task<ImageUploadResult> UploadProfilePic(string imagePath, int userId);
+
+        Task<string> DownloadProfilePic(int userId);
     }
 }

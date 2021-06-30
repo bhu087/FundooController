@@ -17,6 +17,8 @@ namespace FundooRepository.Repo.AccountRepository
     using System.Security.Claims;
     using System.Text;
     using System.Threading.Tasks;
+    using CloudinaryDotNet;
+    using CloudinaryDotNet.Actions;
     using Experimental.System.Messaging;
     using FundooModel.Account;
     using FundooRepository.DbContexts;
@@ -210,6 +212,30 @@ namespace FundooRepository.Repo.AccountRepository
             }
         }
 
+        public User GetAccountByUserId(int userId)
+        {
+            try
+            {
+                var user = this.context.Users.Where(users => users.UserID == userId).SingleOrDefault();
+                if (user == null)
+                {
+                    return null;
+                }
+
+                if (user != null && user.UserID.Equals(userId))
+                {
+                    return user;
+                }
+
+                return null;
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+
+
         /// <summary>
         /// Send mail
         /// </summary>
@@ -291,7 +317,7 @@ namespace FundooRepository.Repo.AccountRepository
                             new Claim("Id", userId.ToString()),
                             new Claim("Email", userEmail)
                         }),
-                    Expires = DateTime.Now.AddDays(Convert.ToDouble(this.config["JwtExpireDays"])),
+                    Expires = DateTime.Now.AddDays(Convert.ToDouble(this.config["Jwt:JwtExpireDays"])),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256Signature)
                 };
                 var securityTokenHandler = new JwtSecurityTokenHandler();
@@ -392,6 +418,59 @@ namespace FundooRepository.Repo.AccountRepository
             catch (MessageQueueException qexception)
             {
                 Console.WriteLine(qexception);
+            }
+        }
+
+        public async Task<ImageUploadResult> UploadProfilePic(string imagePath, int userId)
+        {
+            try
+            {
+                string cloudName = this.config["Cloudinary:CloudName"];
+                string apiKey = this.config["Cloudinary:APIKey"];
+                string apiSecret = this.config["Cloudinary:APISecret"];
+                var user = this.GetAccountByUserId(userId);
+                if (user != null && user.UserID == userId)
+                {
+                    Account account = new Account(cloudName, apiKey, apiSecret);
+                    Cloudinary cloudinary = new Cloudinary(account);
+                    var uploadFile = new ImageUploadParams
+                    {
+                        File = new FileDescription(imagePath)
+                    };
+                    var uploadResult = cloudinary.Upload(uploadFile);
+                    string imageString = uploadResult.Url.ToString();
+                    user.ProfilePic = imageString;
+                    var result = this.context.SaveChangesAsync();
+                    return await Task.Run(() => uploadResult);
+                }
+
+                return null;
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+        public async Task<string> DownloadProfilePic(int userId)
+        {
+            try
+            {
+                var user = this.context.Users.Where(users => users.UserID == userId).SingleOrDefault();
+                if (user == null)
+                {
+                    return null;
+                }
+
+                if (user != null && user.UserID.Equals(userId))
+                {
+                    return await Task.Run(()=> user.ProfilePic);
+                }
+
+                return null;
+            }
+            catch
+            {
+                throw new Exception();
             }
         }
     }

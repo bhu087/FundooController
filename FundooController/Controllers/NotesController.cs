@@ -8,6 +8,7 @@ namespace FundooController.Controllers
 {
     using System;
     using System.Collections.Generic;
+    using System.IdentityModel.Tokens.Jwt;
     using System.Linq;
     using System.Security.Claims;
     using System.Threading.Tasks;
@@ -54,19 +55,27 @@ namespace FundooController.Controllers
         /// Add notes
         /// </summary>
         /// <param name="notes">Notes parameter</param>
-        /// <returns>Action result</returns>
+        /// <returns>Action result</returns>archive
         [HttpPost]
         public ActionResult AddNotes(Notes notes)
         {
-            string jwt = HttpContext.Session.GetString("Token");
+            var token = HttpContext.Request?.Headers["authorization"];
+            string tok = token.ToString();
+            string[] tokenArray = tok.Split(" ");
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(tokenArray[1]);
+            var tokenS = jsonToken as JwtSecurityToken;
+            var email = tokenS.Claims.First(claim => claim.Type == "Email").Value;
+            var user = tokenS.Claims.First(claim => claim.Type == "Id").Value;
+            //string jwt = HttpContext.Session.GetString("Bearer");
             Task<Notes> result = null;
             try
             {
-                if (jwt != null)
+                if (email != null)
 
                 {
-                    notes.UserID = this.TokenUserId();
-                    string email = this.TokenEmail();
+                    notes.UserID = int.Parse(user);
+                    //string email = this.TokenEmail();
                     result = this.manager.AddNotes(notes, email);
                     if (result.Result != null)
                     {
@@ -125,7 +134,7 @@ namespace FundooController.Controllers
         {
             try
             {
-                int userId = this.TokenUserId();
+                int userId = this.GetUserId();
                 Task<Notes> result = this.manager.UpdateNotes(notes, userId);
                 if (result.Result != null)
                 {
@@ -153,7 +162,14 @@ namespace FundooController.Controllers
         {
             try
             {
-                int userId = this.TokenUserId();
+                var token = HttpContext.Request?.Headers["authorization"];
+                string tok = token.ToString();
+                string[] tokenArray = tok.Split(" ");
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(tokenArray[1]);
+                var tokenS = jsonToken as JwtSecurityToken;
+                int userId = int.Parse(tokenS.Claims.First(claim => claim.Type == "Id").Value);
+                 
                 var result = this.manager.GetAllNotes(userId);
                 if (result.Result != null)
                 {
@@ -302,7 +318,7 @@ namespace FundooController.Controllers
         {
             try
             {
-                int userId = this.TokenUserId();
+                int userId = this.GetUserId();
                 Task<bool> response = this.manager.SetIsTrash(notesId, userId);
                 if (response.Result == true)
                 {
@@ -340,6 +356,68 @@ namespace FundooController.Controllers
                 }
                 this.logger.LogError("Trash Not resetted");
                 return this.BadRequest(new { Status = false, Message = "Trash Not resetted", Response = response.Result });
+            }
+            catch (Exception e)
+            {
+                this.logger.LogWarn("Exception " + e + ", Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+
+        [HttpGet("archivedNotes")]
+        public ActionResult GetArchive()
+        {
+            try
+            {
+                var token = HttpContext.Request?.Headers["authorization"];
+                string tok = token.ToString();
+                string[] tokenArray = tok.Split(" ");
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(tokenArray[1]);
+                var tokenS = jsonToken as JwtSecurityToken;
+                int userId = int.Parse(tokenS.Claims.First(claim => claim.Type == "Id").Value);
+
+                var result = this.manager.GetArchivedNotes(userId);
+                if (result.Result != null)
+                {
+                    this.logger.LogInfo("List of notes by email, Status : OK");
+                    this.logger.LogDebug("Debug Successfull : Get all Notes by email");
+                    return this.Ok(new { Status = true, Message = "Lists", Response = result.Result });
+                }
+
+                this.logger.LogError("No lists available, Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "No list available", Response = result.Result });
+            }
+            catch (Exception e)
+            {
+                this.logger.LogWarn("Exception " + e + ", Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
+            }
+        }
+
+        [HttpGet("trashNotes")]
+        public ActionResult GetTrashNotes()
+        {
+            try
+            {
+                var token = HttpContext.Request?.Headers["authorization"];
+                string tok = token.ToString();
+                string[] tokenArray = tok.Split(" ");
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(tokenArray[1]);
+                var tokenS = jsonToken as JwtSecurityToken;
+                int userId = int.Parse(tokenS.Claims.First(claim => claim.Type == "Id").Value);
+
+                var result = this.manager.GetTrashNotes(userId);
+                if (result.Result != null)
+                {
+                    this.logger.LogInfo("List of notes by email, Status : OK");
+                    this.logger.LogDebug("Debug Successfull : Get all Notes by email");
+                    return this.Ok(new { Status = true, Message = "Lists", Response = result.Result });
+                }
+
+                this.logger.LogError("No lists available, Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "No list available", Response = result.Result });
             }
             catch (Exception e)
             {
@@ -573,6 +651,18 @@ namespace FundooController.Controllers
                 this.logger.LogWarn("Exception " + e + ", Status : Bad Request");
                 return this.BadRequest(new { Status = false, Message = "Exception", Response = e });
             }
+        }
+
+        private int GetUserId()
+        {
+            var token = HttpContext.Request?.Headers["authorization"];
+            string tok = token.ToString();
+            string[] tokenArray = tok.Split(" ");
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(tokenArray[1]);
+            var tokenS = jsonToken as JwtSecurityToken;
+            int userId = int.Parse(tokenS.Claims.First(claim => claim.Type == "Id").Value);
+            return userId;
         }
 
         /// <summary>

@@ -12,13 +12,14 @@ namespace FundooController.Controllers
     using System.Linq;
     using System.Security.Claims;
     using System.Threading.Tasks;
+    using CloudinaryDotNet.Actions;
     using FundooManager.Account;
     using FundooModel.Account;
     using LoggerService;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
-    
+
     /// <summary>
     /// Account controller
     /// </summary>
@@ -46,7 +47,7 @@ namespace FundooController.Controllers
             this.manager = accountManager;
             this.logger = loggerManager;
         }
-        
+
         /// <summary>
         /// Register User
         /// </summary>
@@ -109,8 +110,7 @@ namespace FundooController.Controllers
         /// </summary>
         /// <param name="email">Parameter email</param>
         /// <returns>Action result</returns>
-        [HttpPost]
-        [Route("Forget/{email}")]
+        [HttpPost("Forget/{email}")]
         public ActionResult ForgetPassword(string email)
         {
             Task<string> response = this.manager.ForgetPassword(email);
@@ -142,12 +142,12 @@ namespace FundooController.Controllers
         [Route("Reset/{password}")]
         public ActionResult ResetPassword(string password)
         {
-            var token = HttpContext.Request?.Headers["token"];
+            var token = HttpContext.Request?.Headers["authorization"];
             var handler = new JwtSecurityTokenHandler();
             var jsonToken = handler.ReadToken(token);
             var tokenS = jsonToken as JwtSecurityToken;
             var email = tokenS.Claims.First(claim => claim.Type == "Email").Value;
-            Task<string> response = this.manager.ResetPassword(email , password);
+            Task<string> response = this.manager.ResetPassword(email, password);
             try
             {
                 if (response.Result != null)
@@ -166,5 +166,69 @@ namespace FundooController.Controllers
                 return this.BadRequest(new { Status = false, Message = "Exception", Data = e });
             }
         }
+
+        [HttpPost("uploadProfilePic")]
+        public ActionResult UploadProfilePic(string imagePath)
+        {
+            
+            var token = HttpContext.Request?.Headers["authorization"];
+            string tokenString = token.ToString();
+            string[] tokenArray = tokenString.Split(" ");
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(tokenArray[1]);
+            var tokenS = jsonToken as JwtSecurityToken;
+            int userID = int.Parse(tokenS.Claims.First(claim => claim.Type == "Id").Value);
+            Task<ImageUploadResult> response = this.manager.UploadProfilePic(imagePath, userID);
+            try
+            {
+                if (response.Result != null)
+                {
+                    this.logger.LogInfo("Reset password successfully Status : OK");
+                    this.logger.LogDebug("Debug Successfull : reset password");
+                    return this.Ok(new { Status = true, Message = "Reset password successfully", Data = response.Result });
+                }
+
+                this.logger.LogError("invalid Link/Expired :  Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "invalid Link/Expired", Data = response.Result });
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception : " + e + " Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "Exception", Data = e });
+            }
+        }
+
+        [HttpGet]
+        [Route("downloadProfilePic")]
+        public ActionResult DownloadProfilePic()
+        {
+            var token = HttpContext.Request?.Headers["authorization"];
+            string tok = token.ToString();
+            string[] tokenArray = tok.Split(" ");
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(tokenArray[1]);
+            var tokenS = jsonToken as JwtSecurityToken;
+            var userId = int.Parse(tokenS.Claims.First(claim => claim.Type == "Id").Value);
+
+            Task<string> response = this.manager.DownloadProfilePic(userId);
+            try
+            {
+                if (response.Result != null)
+                {
+                    this.logger.LogInfo("Reset password successfully Status : OK");
+                    this.logger.LogDebug("Debug Successfull : reset password");
+                    return this.Ok(new { Status = true, Message = "Reset password successfully", Data = response.Result });
+                }
+
+                this.logger.LogError("invalid Link/Expired :  Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "invalid Link/Expired", Data = response.Result });
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception : " + e + " Status : Bad Request");
+                return this.BadRequest(new { Status = false, Message = "Exception", Data = e });
+            }
+        }
+
     }
 }

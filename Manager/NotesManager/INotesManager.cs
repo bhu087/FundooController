@@ -135,5 +135,8 @@ namespace FundooManager.NotesManager
         Task<bool> SetColor(int noteId, int userId, string color);
 
         Task<bool> DeleteColor(int noteId, int userId);
+
+        Task<List<Notes>> GetArchivedNotes(int userId);
+        Task<List<Notes>> GetTrashNotes(int userId);
     }
 }

@@ -67,7 +67,9 @@ namespace FundooController
                 builder
                 .AllowAnyMethod()
                 .AllowAnyHeader()
-                .WithOrigins("http://localhost:4200");
+                //.WithOrigins("http://localhost:4200")
+                .AllowAnyHeader()
+                .AllowAnyOrigin();
 
             }));
             services.AddSession();
@@ -84,7 +86,7 @@ namespace FundooController
                 c.AddSecurityDefinition("Bearer", new ApiKeyScheme
                 {
                     Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
-                    Name = "Authorization",
+                    Name = "authorization",
                     In = "header",
                     Type = "apiKey"
                 });
@@ -140,7 +142,8 @@ namespace FundooController
             app.UseCors(x => x.AllowAnyMethod()
                   .AllowAnyHeader()
                   .SetIsOriginAllowed(origin => true) // allow any origin
-                  .AllowCredentials());
+                  .AllowCredentials()
+                  .AllowAnyHeader());
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseMvc();

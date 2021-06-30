@@ -15,5 +15,6 @@ namespace FundooModel.Account
         public string Email { get; set; }
         [RegularExpression(@"^(?=.*?[A-Z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$")]
         public string Password { get; set; }
+        public string ProfilePic { get; set; }
     }
 }

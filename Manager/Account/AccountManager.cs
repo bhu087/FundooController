@@ -8,6 +8,7 @@ namespace FundooManager.Account
 {
     using System;
     using System.Threading.Tasks;
+    using CloudinaryDotNet.Actions;
     using FundooModel.Account;
     using FundooRepository.Repo.AccountRepository;
 
@@ -91,6 +92,30 @@ namespace FundooManager.Account
             try
             {
                 return this.repo.ResetPassword(email, password);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+
+        public Task<ImageUploadResult> UploadProfilePic(string imagePath, int userId)
+        {
+            try
+            {
+                return this.repo.UploadProfilePic(imagePath, userId);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+
+        public Task<string> DownloadProfilePic(int userId)
+        {
+            try
+            {
+                return this.repo.DownloadProfilePic(userId);
             }
             catch
             {
